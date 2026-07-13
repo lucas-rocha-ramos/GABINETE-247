@@ -2,74 +2,93 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Roteiro de Filmagens - IA Local</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roteiro de Filmagens - Gabinete 247</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script type="module">
         import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.16.0';
         env.allowLocalModels = false;
         window.pipeline = pipeline;
     </script>
     <style>
-        /* [Mesmos estilos do anterior para manter o padrão visual] */
-        body { background: #000; color: #fff; padding: 2rem; font-family: sans-serif; }
-        .glass-panel { background: rgba(30,30,32,0.8); border-radius: 24px; padding: 40px; max-width: 900px; margin: auto; }
-        .btn { background: #0a84ff; color: white; padding: 15px; border-radius: 12px; border: none; cursor: pointer; width: 100%; font-weight: bold; }
-        #loader { display: none; text-align: center; margin-top: 20px; }
-        textarea { width: 100%; height: 150px; background: #222; color: #fff; padding: 15px; border-radius: 12px; border: none; margin: 10px 0; }
+        :root { --brand-green: #113826; --accent-color: #0a84ff; }
+        body { background: #000; color: #fff; padding: 2rem; font-family: -apple-system, sans-serif; }
+        .app-container { background: rgba(30,30,32,0.8); backdrop-filter: blur(20px); border-radius: 24px; padding: 40px; max-width: 950px; margin: auto; }
+        textarea { width: 100%; height: 120px; background: #222; color: #fff; padding: 15px; border-radius: 12px; border: 1px solid #444; margin: 10px 0; }
+        .btn { background: var(--accent-color); color: white; padding: 15px 25px; border-radius: 12px; border: none; cursor: pointer; font-weight: bold; }
+        
+        /* Folha de Roteiro */
+        #script-sheet { background: #fff; color: #333; width: 850px; margin: 20px auto; padding: 40px; }
+        .table-title { background: var(--brand-green); color: white; text-align: center; padding: 10px; font-weight: bold; margin: 15px 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: var(--brand-green); color: white; padding: 10px; font-size: 12px; }
+        td { border: 1px solid #ddd; padding: 10px; vertical-align: top; }
+        .ai-image { width: 100%; height: 100px; object-fit: cover; }
     </style>
 </head>
 <body>
 
-<div class="glass-panel">
-    <h1>Roteiro de Filmagens (IA Local)</h1>
-    <p>Descreva seu evento abaixo. A IA vai processar tudo aqui no seu navegador.</p>
-    
-    <textarea id="prompt" placeholder="Ex: Roteiro para cobertura de um evento religioso no Grande Templo de Cuiabá..."></textarea>
-    <button class="btn" onclick="gerarRoteiroLocal()">Gerar Roteiro (Offline)</button>
+<div class="app-container">
+    <h1>Gerador de Roteiros IA</h1>
+    <textarea id="prompt" placeholder="Descreva o evento (ex: Culto de jovens 'Desperta' em Cuiabá, 13 de Julho)..."></textarea>
+    <button class="btn" onclick="gerarTudo()">Gerar Roteiro e Imagens</button>
 
-    <div id="loader">
-        <div class="spinner"></div>
-        <p id="status">Carregando cérebro da IA (1ª vez demora um pouco)...</p>
+    <div id="loader" style="display:none; text-align:center; padding:20px;">
+        <div class="spinner"></div> 
+        <p id="status">Processando IA localmente (pode demorar na 1ª vez)...</p>
     </div>
 
-    <div id="output" style="margin-top: 20px; line-height: 1.6; white-space: pre-wrap; color: #ccc;"></div>
+    <div id="script-sheet">
+        <h1 style="color:var(--brand-green)">ROTEIRO DE FILMAGENS</h1>
+        <div class="table-title">CAPTAÇÕES E CENAS</div>
+        <table id="tabela-cenas">
+            <thead>
+                <tr><th>CENA</th><th>CONTEÚDO</th><th>REF. IA</th><th>MOVIMENTOS</th><th>OBJETIVO</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 </div>
 
-<script>
+<script type="module">
     let generator = null;
 
-    async function gerarRoteiroLocal() {
+    window.gerarTudo = async function() {
         const prompt = document.getElementById('prompt').value;
         const loader = document.getElementById('loader');
-        const output = document.getElementById('output');
         const status = document.getElementById('status');
-
-        if(!prompt) return alert("Descreva o evento!");
-
+        
         loader.style.display = 'block';
         
         try {
-            if (!generator) {
-                status.innerText = "Baixando modelo de IA (isso acontece só na primeira vez)...";
-                // Usando o modelo Phi-3 (Tiny) que roda localmente
-                generator = await window.pipeline('text-generation', 'Xenova/phi-2');
-            }
+            if (!generator) generator = await window.pipeline('text-generation', 'Xenova/phi-2');
+            status.innerText = "Criando roteiro...";
+            
+            // IA gera a estrutura do roteiro
+            const res = await generator(`Crie um roteiro de 4 cenas para: ${prompt}. Formato JSON: [{"cena":1, "conteudo":"...", "prompt":"...", "mov":"...", "obj":"..."}]`, { max_new_tokens: 400 });
+            const texto = res[0].generated_text;
+            const jsonPart = texto.substring(texto.indexOf('['), texto.lastIndexOf(']')+1);
+            const cenas = JSON.parse(jsonPart);
 
-            status.innerText = "Escrevendo roteiro...";
-            
-            const fullPrompt = `Crie um roteiro de filmagens detalhado e profissional com 5 cenas para: ${prompt}. Formate como uma lista técnica de filmagem.`;
-            
-            const result = await generator(fullPrompt, {
-                max_new_tokens: 500,
-                temperature: 0.7
+            const tbody = document.querySelector('#tabela-cenas tbody');
+            tbody.innerHTML = '';
+
+            cenas.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${c.cena}</td>
+                    <td>${c.conteudo}</td>
+                    <td><img class="ai-image" src="https://image.pollinations.ai/prompt/${encodeURIComponent(c.prompt)}?width=400&height=250&nologo=true"></td>
+                    <td>${c.mov}</td>
+                    <td>${c.obj}</td>
+                `;
+                tbody.appendChild(tr);
             });
-
-            output.innerText = result[0].generated_text.split(fullPrompt)[1] || result[0].generated_text;
             loader.style.display = 'none';
-
-        } catch (e) {
-            console.error(e);
-            status.innerText = "Erro ao rodar IA local. Tente um dispositivo mais potente.";
+        } catch(e) {
+            alert("Erro: " + e.message);
+            loader.style.display = 'none';
         }
     }
 </script>
