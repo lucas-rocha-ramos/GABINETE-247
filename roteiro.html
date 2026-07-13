@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roteiro de Filmagens - Gabinete 247</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
     <style>
         :root { --brand-green: #113826; --accent-color: #0a84ff; }
         body { background: #000; color: #fff; padding: 2rem; font-family: -apple-system, sans-serif; }
@@ -27,13 +25,13 @@
 
 <div class="app-container">
     <h1>Gerador de Roteiros IA</h1>
-    <p>Descreva seu evento e a IA gerará o roteiro técnico.</p>
-    <textarea id="prompt" placeholder="Ex: Roteiro para um culto de jovens em Cuiabá, foco na banda e pregador..."></textarea>
+    <p>Descreva seu evento para gerar o roteiro técnico.</p>
+    <textarea id="prompt" placeholder="Ex: Roteiro para cobertura cinematográfica de um culto de jovens..."></textarea>
     <button class="btn" onclick="gerarRoteiro()">Gerar Roteiro e Imagens</button>
 
     <div id="loader" style="display:none; text-align:center; padding:20px;">
         <div class="spinner"></div> 
-        <p id="status">Consultando IA especializada...</p>
+        <p id="status">Consultando IA...</p>
     </div>
 
     <div id="script-sheet">
@@ -56,14 +54,20 @@
         
         loader.style.display = 'block';
 
-        // Usamos a API da Pollinations para gerar o JSON diretamente
-        // Isso resolve o erro de carregamento de arquivo .onnx do navegador
-        const fullPrompt = `Crie um roteiro de filmagens de 4 cenas para: ${prompt}. Responda APENAS com um array JSON contendo objetos com estas chaves: "cena", "conteudo", "prompt", "mov", "obj". Sem formatação markdown, apenas o JSON puro.`;
-        const url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?json=true`;
+        // Instrução rígida para a IA retornar apenas o JSON puro
+        const fullPrompt = `Crie um roteiro de filmagens de 4 cenas para: "${prompt}". Responda estritamente com um JSON array contendo objetos com estas chaves: "cena", "conteudo", "prompt", "mov", "obj". Não escreva nada além do JSON.`;
+        const url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}`;
 
         try {
             const response = await fetch(url);
-            const cenas = await response.json();
+            let texto = await response.text();
+            
+            // Limpeza: garante que pegamos apenas o que está entre [ ]
+            const start = texto.indexOf('[');
+            const end = texto.lastIndexOf(']') + 1;
+            const jsonPart = texto.substring(start, end);
+            
+            const cenas = JSON.parse(jsonPart);
 
             const tbody = document.querySelector('#tabela-cenas tbody');
             tbody.innerHTML = '';
@@ -71,18 +75,18 @@
             cenas.forEach(c => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${c.cena}</td>
-                    <td>${c.conteudo}</td>
-                    <td><img class="ai-image" src="https://image.pollinations.ai/prompt/${encodeURIComponent(c.prompt)}?width=400&height=250&nologo=true"></td>
-                    <td>${c.mov}</td>
-                    <td>${c.obj}</td>
+                    <td>${c.cena || '-'}</td>
+                    <td>${c.conteudo || '-'}</td>
+                    <td><img class="ai-image" src="https://image.pollinations.ai/prompt/${encodeURIComponent(c.prompt || 'cinematic shot')}?width=400&height=250&nologo=true"></td>
+                    <td>${c.mov || '-'}</td>
+                    <td>${c.obj || '-'}</td>
                 `;
                 tbody.appendChild(tr);
             });
             loader.style.display = 'none';
         } catch(e) {
-            console.error(e);
-            alert("Erro ao processar roteiro. Tente novamente.");
+            console.error("Erro na extração:", e);
+            alert("A IA demorou ou retornou erro. Tente descrever o evento de forma diferente.");
             loader.style.display = 'none';
         }
     }
