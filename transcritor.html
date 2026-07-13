@@ -5,12 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transcrição IA - Gabinete 247</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- IMPORTANDO O TRANSFORMERS.JS PARA RODAR IA NO NAVEGADOR -->
-    <script type="module">
-        import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.16.0';
-        window.pipeline = pipeline;
-        window.env = env;
-    </script>
     <style>
         :root {
             --bg-color: #000000;
@@ -115,7 +109,7 @@
 
         <div id="processing-section">
             <div class="processing-text" id="status-text">Preparando motor de IA Neural...</div>
-            <p style="color: var(--text-secondary); font-size: 13px; margin-top: 10px;" id="sub-status">O primeiro uso baixará o modelo (~40MB)</p>
+            <p style="color: var(--text-secondary); font-size: 13px; margin-top: 10px;" id="sub-status">O primeiro uso baixará o modelo (~240MB)</p>
             <div class="progress-bar-container">
                 <div class="progress-bar" id="progress-bar"></div>
             </div>
@@ -191,28 +185,67 @@
             connect();
         }
 
-        // --- 2. LÓGICA DE INTELIGÊNCIA ARTIFICIAL REAL ---
+        // --- 2. LÓGICA DE INTELIGÊNCIA ARTIFICIAL REAL (AGORA COM WEB WORKER PARA NÃO TRAVAR) ---
         
-        // Formata os segundos do Whisper para o estilo [00:00:00]
         function formatTime(seconds) {
+            if (isNaN(seconds) || seconds === null) seconds = 0;
             const date = new Date(null);
             date.setSeconds(seconds);
             return `[${date.toISOString().substr(11, 8)}]`;
         }
 
-        // Converte o arquivo de vídeo/áudio do usuário para o formato que a IA entende
         async function extractAudio(file) {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
             const arrayBuffer = await file.arrayBuffer();
             const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-            return audioBuffer.getChannelData(0); // Transforma em mono channel
+            return audioBuffer.getChannelData(0);
         }
+
+        // Criando o Worker inline para não travar a aba (UI)
+        const workerCode = `
+            import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.16.0';
+            env.allowLocalModels = false;
+
+            let transcriber = null;
+
+            self.onmessage = async (e) => {
+                const audioData = e.data.audioData;
+                
+                try {
+                    if (!transcriber) {
+                        self.postMessage({ status: 'loading_model' });
+                        // Upgrade para whisper-small para maior precisão em português
+                        transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-small', {
+                            progress_callback: (info) => {
+                                self.postMessage({ status: 'progress', info: info });
+                            }
+                        });
+                    }
+
+                    self.postMessage({ status: 'transcribing' });
+
+                    const output = await transcriber(audioData, {
+                        chunk_length_s: 30,
+                        stride_length_s: 5,
+                        language: 'portuguese',
+                        task: 'transcribe',
+                        return_timestamps: true
+                    });
+
+                    self.postMessage({ status: 'complete', output: output });
+                } catch (error) {
+                    self.postMessage({ status: 'error', error: error.message });
+                }
+            };
+        `;
+
+        const blob = new Blob([workerCode], { type: 'application/javascript' });
+        const worker = new Worker(URL.createObjectURL(blob), { type: 'module' });
 
         document.getElementById('file-input').addEventListener('change', async function(e) {
             if(this.files && this.files.length > 0) {
                 const file = this.files[0];
                 
-                // Transições de UI
                 document.getElementById('upload-section').style.display = 'none';
                 document.getElementById('processing-section').style.display = 'flex';
                 canvas.style.opacity = 1;
@@ -227,69 +260,78 @@
                     statusText.innerText = "Extraindo faixa de áudio...";
                     const audioData = await extractAudio(file);
 
-                    statusText.innerText = "Carregando IA Whisper (Pode levar 1 minuto na 1ª vez)...";
-                    
-                    // Impede o cache local de quebrar e carrega o modelo
-                    window.env.allowLocalModels = false;
-                    
-                    // Baixa/Prepara o modelo Whisper-tiny (menor modelo possível para rodar na web)
-                    const transcriber = await window.pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny', {
-                        progress_callback: (info) => {
-                            if(info.status === 'progress') {
-                                progressBar.style.width = `${info.progress}%`;
+                    // Envia os dados para o Worker rodar em segundo plano sem travar
+                    worker.postMessage({ audioData: audioData });
+
+                    worker.onmessage = function(event) {
+                        const data = event.data;
+
+                        if (data.status === 'loading_model') {
+                            statusText.innerText = "Carregando IA Whisper (Versão Small)...";
+                            subStatus.innerText = "Maior precisão em português (~240MB no primeiro uso)";
+                        } 
+                        else if (data.status === 'progress' && data.info) {
+                            if(data.info.status === 'progress') {
+                                progressBar.style.width = data.info.progress + '%';
                             }
                         }
-                    });
+                        else if (data.status === 'transcribing') {
+                            statusText.innerText = "Transcrevendo texto e tempos...";
+                            subStatus.innerText = "Rodando em segundo plano. As animações não vão mais travar.";
+                            progressBar.style.width = '100%';
+                            progressBar.style.animation = 'pulse 1s infinite alternate';
+                        }
+                        else if (data.status === 'complete') {
+                            resultBox.innerHTML = ''; 
+                            const output = data.output;
+                            
+                            if (output.chunks && output.chunks.length > 0) {
+                                output.chunks.forEach((chunk, index) => {
+                                    // Proteção rigorosa para os timestamps
+                                    const rawTime = (chunk.timestamp && chunk.timestamp[0] !== null) ? chunk.timestamp[0] : 0;
+                                    const startTime = formatTime(rawTime);
+                                    
+                                    const blocoHTML = `
+                                        <div class="speech-block">
+                                            <div class="meta-info">
+                                                <span class="timestamp">${startTime}</span>
+                                                <span class="speaker" contenteditable="true">Locutor ${index + 1}</span>
+                                                <span class="description" style="font-size:11px; cursor:pointer;" onclick="this.innerText='(Editável)'">(Toque para descrever)</span>
+                                            </div>
+                                            <div class="text" contenteditable="true">${chunk.text.trim()}</div>
+                                        </div>
+                                    `;
+                                    resultBox.innerHTML += blocoHTML;
+                                });
+                            } else {
+                                // Fallback seguro se o áudio não gerar recortes de tempo
+                                resultBox.innerHTML = `
+                                    <div class="speech-block">
+                                        <div class="meta-info">
+                                            <span class="timestamp">[00:00:00]</span>
+                                            <span class="speaker" contenteditable="true">Locutor 1</span>
+                                        </div>
+                                        <div class="text" contenteditable="true">${output.text}</div>
+                                    </div>`;
+                            }
 
-                    statusText.innerText = "Transcrevendo... Isso usa o processamento do seu dispositivo.";
-                    subStatus.innerText = "Analisando faixas neurais...";
-                    progressBar.style.width = '100%';
-                    progressBar.style.animation = 'pulse 1s infinite alternate';
-
-                    // Roda a Inteligência Artificial no áudio
-                    const output = await transcriber(audioData, {
-                        chunk_length_s: 30, // Corta em pedaços para não travar
-                        stride_length_s: 5,
-                        language: 'portuguese',
-                        task: 'transcribe',
-                        return_timestamps: true // Para pegar o [00:00:15]
-                    });
-
-                    // Monta o Resultado na Tela
-                    resultBox.innerHTML = ''; // Limpa a tela
-                    
-                    // A IA Whisper retorna os "chunks" (pedaços de fala com o tempo exato)
-                    if (output.chunks && output.chunks.length > 0) {
-                        output.chunks.forEach((chunk, index) => {
-                            const startTime = formatTime(chunk.timestamp[0]);
-                            const blocoHTML = `
-                                <div class="speech-block">
-                                    <div class="meta-info">
-                                        <span class="timestamp">${startTime}</span>
-                                        <span class="speaker" contenteditable="true">Locutor ${index + 1}</span>
-                                        <span class="description" style="font-size:11px; cursor:pointer;" onclick="this.innerText='(Editável)'">(Toque para descrever)</span>
-                                    </div>
-                                    <!-- A tag contenteditable permite que o usuário corrija erros da IA clicando no texto -->
-                                    <div class="text" contenteditable="true">${chunk.text.trim()}</div>
-                                </div>
-                            `;
-                            resultBox.innerHTML += blocoHTML;
-                        });
-                    } else {
-                        // Caso a IA não consiga separar em chunks
-                        resultBox.innerHTML = `<div class="speech-block"><div class="text" contenteditable="true">${output.text}</div></div>`;
-                    }
-
-                    // Fim do Processo
-                    cancelAnimationFrame(animationFrameId);
-                    canvas.style.opacity = 0;
-                    document.getElementById('processing-section').style.display = 'none';
-                    document.getElementById('result-section').style.display = 'block';
+                            cancelAnimationFrame(animationFrameId);
+                            canvas.style.opacity = 0;
+                            document.getElementById('processing-section').style.display = 'none';
+                            document.getElementById('result-section').style.display = 'block';
+                        }
+                        else if (data.status === 'error') {
+                            console.error(data.error);
+                            statusText.innerText = "Erro ao processar.";
+                            subStatus.innerText = "Erro: " + data.error;
+                            progressBar.style.background = '#ff3b30';
+                        }
+                    };
 
                 } catch (error) {
                     console.error(error);
-                    statusText.innerText = "Erro ao processar.";
-                    subStatus.innerText = "Tente usar um arquivo mais curto ou verifique a conexão.";
+                    statusText.innerText = "Erro ao extrair áudio.";
+                    subStatus.innerText = "Verifique o formato do arquivo ou tente um áudio menor.";
                     progressBar.style.background = '#ff3b30';
                 }
             }
