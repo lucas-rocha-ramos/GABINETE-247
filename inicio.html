@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Início - GABINETE 247</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- IMPORTA O CÉREBRO DE DADOS -->
+    <script src="ferramentas.js"></script>
     <style>
         * {
             margin: 0;
@@ -14,30 +16,16 @@
         }
 
         body {
-            background-color: transparent; /* Pega o fundo do iframe do index */
+            background-color: transparent; 
             color: #1d1d1f;
             padding: 3rem;
             max-width: 1200px;
             margin: 0 auto;
         }
 
-        header {
-            margin-bottom: 4rem;
-        }
-
-        h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            letter-spacing: -1px;
-            margin-bottom: 1rem;
-        }
-
-        p.subtitle {
-            font-size: 1.2rem;
-            color: #86868b;
-            max-width: 600px;
-            line-height: 1.5;
-        }
+        header { margin-bottom: 4rem; }
+        h1 { font-size: 2.5rem; font-weight: 700; letter-spacing: -1px; margin-bottom: 1rem; }
+        p.subtitle { font-size: 1.2rem; color: #86868b; max-width: 600px; line-height: 1.5; }
 
         .dashboard-grid {
             display: grid;
@@ -51,6 +39,7 @@
             padding: 2rem;
             box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
         }
 
         .card:hover {
@@ -71,17 +60,8 @@
             margin-bottom: 1.5rem;
         }
 
-        .card h2 {
-            font-size: 1.2rem;
-            margin-bottom: 0.8rem;
-        }
-
-        .card p {
-            color: #86868b;
-            font-size: 0.95rem;
-            line-height: 1.5;
-            margin-bottom: 1.5rem;
-        }
+        .card h2 { font-size: 1.2rem; margin-bottom: 0.8rem; }
+        .card p { color: #86868b; font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.5rem; }
 
         .tag-news {
             display: inline-block;
@@ -93,6 +73,8 @@
             font-weight: 600;
             margin-bottom: 1rem;
         }
+
+        .tag-ia { background: #e0e0ff; color: #48319d; }
 
         @media (max-width: 768px) {
             body { padding: 1.5rem; }
@@ -107,20 +89,75 @@
         <p class="subtitle">O seu ecossistema integrado de ferramentas. Selecione um módulo no menu lateral para começar.</p>
     </header>
 
-    <div class="dashboard-grid">
-        <div class="card">
-            <span class="tag-news">NOVO</span>
-            <div class="card-icon"><i class="fas fa-image"></i></div>
-            <h2>Gerador de Matérias</h2>
-            <p>Crie artes padronizadas para redes sociais rapidamente. Formatos otimizados para Feed e Stories.</p>
-        </div>
+    <!-- A GRID ESTÁ VAZIA, O JAVASCRIPT VAI PREENCHER -->
+    <div class="dashboard-grid" id="grid-dinamica"></div>
 
-        <div class="card" style="opacity: 0.6;">
-            <div class="card-icon" style="background: #f5f5f7; color: #86868b;"><i class="fas fa-tools"></i></div>
-            <h2>Em Breve</h2>
-            <p>Novos módulos e integrações estão sendo desenvolvidos para expandir o ecossistema.</p>
-        </div>
-    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const gridContainer = document.getElementById('grid-dinamica');
 
+            ferramentasGabinete.forEach(ferramenta => {
+                // Não queremos um Card para a página de Início, só para as ferramentas
+                if (ferramenta.id === 'inicio') return;
+
+                const card = document.createElement('div');
+                card.className = 'card';
+
+                // Lógica de etiqueta de novidade
+                let badgeHTML = '';
+                if (ferramenta.novaFuncao) {
+                    // Se a palavra 'AI' ou 'IA' estiver no nome, faz um selo diferente
+                    if (ferramenta.nome.includes('AI') || ferramenta.nome.includes('IA')) {
+                        badgeHTML = `<span class="tag-news tag-ia">NOVO | IA</span>`;
+                    } else {
+                        badgeHTML = `<span class="tag-news">NOVO</span>`;
+                    }
+                }
+
+                // Lógica de cores baseada no nome (apenas estética)
+                let iconBg = '#e8f0fe';
+                let iconColor = '#0066cc';
+                if (ferramenta.nome.includes('AI') || ferramenta.nome.includes('IA')) {
+                    iconBg = '#000000';
+                    iconColor = '#0a84ff';
+                }
+
+                card.innerHTML = `
+                    ${badgeHTML}
+                    <div class="card-icon" style="background: ${iconBg}; color: ${iconColor};">
+                        <i class="${ferramenta.icone}"></i>
+                    </div>
+                    <h2>${ferramenta.nome}</h2>
+                    <p>${ferramenta.descricao}</p>
+                `;
+
+                // Faz o card ser clicável (muda a aba do iframe parent)
+                card.style.cursor = 'pointer';
+                card.addEventListener('click', () => {
+                    // Atualiza o iframe
+                    window.parent.document.getElementById('main-frame').src = ferramenta.arquivo;
+                    
+                    // Atualiza o menu lateral para ficar azul na ferramenta clicada
+                    const navItems = window.parent.document.querySelectorAll('.nav-item');
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    const itemClicado = window.parent.document.querySelector(`[data-id="${ferramenta.id}"]`);
+                    if(itemClicado) itemClicado.classList.add('active');
+                });
+
+                gridContainer.appendChild(card);
+            });
+
+            // Card extra visual ("Em Breve")
+            const cardEmBreve = document.createElement('div');
+            cardEmBreve.className = 'card';
+            cardEmBreve.style.opacity = '0.6';
+            cardEmBreve.innerHTML = `
+                <div class="card-icon" style="background: #f5f5f7; color: #86868b;"><i class="fas fa-tools"></i></div>
+                <h2>Em Breve</h2>
+                <p>Novos módulos e integrações estão sendo desenvolvidos para expandir o ecossistema.</p>
+            `;
+            gridContainer.appendChild(cardEmBreve);
+        });
+    </script>
 </body>
 </html>
