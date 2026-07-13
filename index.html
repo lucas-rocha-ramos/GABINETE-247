@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GABINETE 247</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- IMPORTA O CÉREBRO DE DADOS -->
+    <script src="ferramentas.js"></script>
     <style>
         :root {
             --bg-color: #f5f5f7;
@@ -30,7 +32,6 @@
             color: var(--text-main);
         }
 
-        /* Menu Lateral Estilo MacOS */
         .sidebar {
             width: 260px;
             background: var(--sidebar-bg);
@@ -80,30 +81,21 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            cursor: pointer;
         }
 
         .nav-item i {
             color: var(--text-muted);
             font-size: 1.1rem;
             transition: color 0.2s ease;
-            width: 20px; /* Mantém os ícones alinhados */
+            width: 20px;
             text-align: center;
         }
 
-        .nav-item:hover {
-            background-color: rgba(0,0,0,0.03);
-        }
+        .nav-item:hover { background-color: rgba(0,0,0,0.03); }
+        .nav-item.active { background-color: var(--accent-hover); color: var(--accent); }
+        .nav-item.active i { color: var(--accent); }
 
-        .nav-item.active {
-            background-color: var(--accent-hover);
-            color: var(--accent);
-        }
-
-        .nav-item.active i {
-            color: var(--accent);
-        }
-
-        /* Área de Conteúdo (iFrame) */
         .content-area {
             flex: 1;
             height: 100%;
@@ -118,9 +110,7 @@
         }
 
         @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-            }
+            body { flex-direction: column; }
             .sidebar {
                 width: 100%;
                 height: auto;
@@ -130,58 +120,53 @@
                 justify-content: space-between;
             }
             .brand { margin-bottom: 0; }
-            .nav-menu {
-                flex-direction: row;
-                overflow-x: auto;
-            }
-            .nav-item span { display: none; /* Oculta texto no mobile, mostra só ícone */ }
+            .nav-menu { flex-direction: row; overflow-x: auto; }
+            .nav-item span { display: none; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Menu Lateral -->
     <aside class="sidebar">
         <div class="brand">
             <i class="fas fa-layer-group"></i>
             GABINETE 247
         </div>
         <nav>
-            <ul class="nav-menu">
-                <li>
-                    <a href="inicio.html" target="app-frame" class="nav-item active" id="nav-inicio">
-                        <i class="fas fa-home"></i>
-                        <span>Início</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="gerador.html" target="app-frame" class="nav-item" id="nav-gerador">
-                        <i class="fas fa-image"></i>
-                        <span>Gerador de Matérias</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="transcritor.html" target="app-frame" class="nav-item" id="nav-transcritor">
-                        <i class="fas fa-microphone-alt"></i>
-                        <span>Transcritor AI</span>
-                    </a>
-                </li>
-            </ul>
+            <!-- A LISTA ESTÁ VAZIA, O JAVASCRIPT VAI PREENCHER -->
+            <ul class="nav-menu" id="menu-dinamico"></ul>
         </nav>
     </aside>
 
-    <!-- Área onde os aplicativos vão carregar -->
     <main class="content-area">
-        <iframe name="app-frame" src="inicio.html" title="Aplicativo GABINETE 247"></iframe>
+        <iframe name="app-frame" id="main-frame" src="inicio.html" title="Aplicativo GABINETE 247"></iframe>
     </main>
 
     <script>
-        // Script simples para marcar o menu ativo
-        const navItems = document.querySelectorAll('.nav-item');
-        navItems.forEach(item => {
-            item.addEventListener('click', function() {
-                navItems.forEach(nav => nav.classList.remove('active'));
-                this.classList.add('active');
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuContainer = document.getElementById('menu-dinamico');
+
+            // 1. Constrói o menu lendo o arquivo ferramentas.js
+            ferramentasGabinete.forEach(ferramenta => {
+                const li = document.createElement('li');
+                const isAtivo = ferramenta.id === 'inicio' ? 'active' : '';
+                
+                li.innerHTML = `
+                    <a href="${ferramenta.arquivo}" target="app-frame" class="nav-item ${isAtivo}" data-id="${ferramenta.id}">
+                        <i class="${ferramenta.icone}"></i>
+                        <span>${ferramenta.nome}</span>
+                    </a>
+                `;
+                menuContainer.appendChild(li);
+            });
+
+            // 2. Lógica para mudar a cor do botão ativo ao clicar
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                });
             });
         });
     </script>
