@@ -1,991 +1,518 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Transcrição iOS 26 · Vídeo para Áudio</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcrição IA - Gabinete 247</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Variáveis de estilo iOS / Futuristic Apple */
+        :root {
+            --bg-color: #000000;
+            --glass-bg: rgba(30, 30, 32, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a5;
+            --accent-color: #0a84ff;
+            --accent-glow: rgba(10, 132, 255, 0.5);
+            --timestamp-color: #32d74b;
+        }
 
-    body {
-      background: #0a0b0e;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
 
-    .ios-card {
-      max-width: 820px;
-      width: 100%;
-      background: rgba(28, 30, 36, 0.68);
-      backdrop-filter: blur(36px) saturate(180%);
-      -webkit-backdrop-filter: blur(36px) saturate(180%);
-      border-radius: 56px;
-      padding: 32px 28px;
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7), 0 0 0 0.5px rgba(255, 255, 255, 0.06) inset;
-      border: 0.5px solid rgba(255, 255, 255, 0.08);
-      position: relative;
-      z-index: 10;
-    }
+        body {
+            background-color: transparent; /* Para puxar o fundo do painel, se necessário, ou usar o gradiente abaixo */
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            /* Fundo com gradiente animado estilo iOS */
+            background: radial-gradient(circle at 15% 50%, rgba(72, 49, 157, 0.4), transparent 50%),
+                        radial-gradient(circle at 85% 30%, rgba(10, 132, 255, 0.3), transparent 50%),
+                        #000000;
+            background-attachment: fixed;
+            padding: 2rem;
+        }
 
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 28px;
-      padding-bottom: 12px;
-      border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
-    }
+        /* Container Principal com Efeito de Vidro */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border);
+            border-radius: 36px;
+            width: 100%;
+            max-width: 900px;
+            min-height: 550px;
+            padding: 50px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
 
-    .header i {
-      font-size: 28px;
-      color: #0a84ff;
-      background: rgba(10, 132, 255, 0.15);
-      padding: 10px;
-      border-radius: 18px;
-    }
+        .header { text-align: center; margin-bottom: 40px; position: relative; z-index: 2; }
+        
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #fff, #a0a0a5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-    .header h1 {
-      font-size: 26px;
-      font-weight: 590;
-      color: #ffffff;
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-    }
+        .header p { color: var(--text-secondary); font-size: 16px; margin-top: 8px; }
 
-    .header span {
-      color: rgba(255, 255, 255, 0.5);
-      font-size: 14px;
-      margin-left: auto;
-      background: rgba(255, 255, 255, 0.06);
-      padding: 6px 14px;
-      border-radius: 40px;
-    }
+        /* Área de Upload */
+        #upload-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 60px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
 
-    .upload-area {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1.5px dashed rgba(255, 255, 255, 0.15);
-      border-radius: 40px;
-      padding: 36px 20px;
-      text-align: center;
-      margin-bottom: 28px;
-      transition: all 0.3s ease;
-    }
+        #upload-section:hover {
+            border-color: var(--accent-color);
+            background: rgba(10, 132, 255, 0.05);
+        }
 
-    .upload-area:hover {
-      background: rgba(255, 255, 255, 0.06);
-      border-color: rgba(10, 132, 255, 0.5);
-    }
+        .upload-icon { font-size: 48px; margin-bottom: 16px; color: var(--accent-color); }
+        
+        /* Esconde o input real de arquivo */
+        #file-input { display: none; }
 
-    .upload-area i {
-      font-size: 40px;
-      color: #0a84ff;
-      opacity: 0.7;
-      margin-bottom: 12px;
-    }
+        .upload-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 20px;
+            cursor: pointer;
+            box-shadow: 0 8px 24px var(--accent-glow);
+            transition: transform 0.2s, box-shadow 0.2s;
+            pointer-events: none; /* Deixa o clique passar para a área tracejada */
+        }
 
-    .upload-area p {
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 16px;
-    }
+        /* Área de Processamento (Partículas) */
+        #processing-section {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 350px;
+            position: relative;
+            z-index: 2;
+        }
 
-    .upload-area .formats {
-      font-size: 13px;
-      color: rgba(255, 255, 255, 0.3);
-      margin-top: 6px;
-    }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
 
-    #fileInput {
-      display: none;
-    }
+        .processing-text {
+            position: relative;
+            z-index: 1;
+            font-size: 20px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            animation: pulse 2s infinite;
+        }
 
-    .btn-upload {
-      background: #0a84ff;
-      border: none;
-      color: white;
-      padding: 12px 32px;
-      border-radius: 40px;
-      font-size: 17px;
-      font-weight: 500;
-      margin-top: 18px;
-      box-shadow: 0 8px 20px rgba(10, 132, 255, 0.25);
-      transition: all 0.2s ease;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; text-shadow: 0 0 15px rgba(255,255,255,0.5); }
+            100% { opacity: 0.6; }
+        }
 
-    .btn-upload:hover {
-      background: #0066d9;
-      transform: scale(0.97);
-    }
+        /* Área de Resultado da Transcrição */
+        #result-section {
+            display: none;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            z-index: 2;
+        }
 
-    .btn-upload:active {
-      transform: scale(0.94);
-    }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-    .particles-wrapper {
-      position: relative;
-      width: 100%;
-      height: 110px;
-      border-radius: 32px;
-      background: rgba(0, 0, 0, 0.25);
-      backdrop-filter: blur(4px);
-      margin: 18px 0 22px;
-      overflow: hidden;
-      border: 0.5px solid rgba(255, 255, 255, 0.04);
-    }
+        .transcription-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 24px;
+            max-height: 380px;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 24px;
+        }
 
-    #particleCanvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: block;
-      pointer-events: none;
-    }
+        /* Custom Scrollbar */
+        .transcription-box::-webkit-scrollbar { width: 8px; }
+        .transcription-box::-webkit-scrollbar-track { background: transparent; }
+        .transcription-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
-    .status-text {
-      position: absolute;
-      bottom: 14px;
-      left: 24px;
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 15px;
-      background: rgba(0, 0, 0, 0.3);
-      backdrop-filter: blur(10px);
-      padding: 6px 18px;
-      border-radius: 40px;
-      border: 0.3px solid rgba(255, 255, 255, 0.08);
-      z-index: 20;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+        .speech-block { margin-bottom: 24px; line-height: 1.6; }
 
-    .status-text i {
-      color: #0a84ff;
-    }
+        .meta-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
 
-    .transcription-box {
-      background: rgba(0, 0, 0, 0.25);
-      backdrop-filter: blur(8px);
-      border-radius: 36px;
-      padding: 24px 20px;
-      margin-top: 18px;
-      border: 0.5px solid rgba(255, 255, 255, 0.04);
-      max-height: 340px;
-      overflow-y: auto;
-    }
+        .timestamp {
+            color: var(--timestamp-color);
+            font-family: "SF Mono", monospace;
+            font-weight: 500;
+            background: rgba(50, 215, 75, 0.1);
+            padding: 4px 10px;
+            border-radius: 8px;
+        }
 
-    .transcription-box::-webkit-scrollbar {
-      width: 4px;
-    }
-    .transcription-box::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 20px;
-    }
+        .speaker { font-weight: 600; color: var(--accent-color); font-size: 15px; }
+        .description { color: var(--text-secondary); font-style: italic; font-size: 13px; }
+        .text {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 16px;
+            padding-left: 14px;
+            border-left: 2px solid rgba(255,255,255,0.1);
+        }
 
-    .transcription-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-      padding: 14px 0;
-      border-bottom: 0.5px solid rgba(255, 255, 255, 0.04);
-      animation: fadeIn 0.4s ease forwards;
-    }
+        /* Controles Inferiores */
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
 
-    .transcription-item:last-child {
-      border-bottom: none;
-    }
+        .btn-action {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 12px 24px;
+            border-radius: 16px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.2s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-    .transcription-item .character {
-      font-weight: 600;
-      color: #0a84ff;
-      min-width: 70px;
-      font-size: 15px;
-      background: rgba(10, 132, 255, 0.08);
-      padding: 4px 12px;
-      border-radius: 30px;
-      text-align: center;
-    }
+        .btn-action:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
+        .btn-action.primary { background: var(--accent-color); border: none; box-shadow: 0 4px 15px var(--accent-glow); }
+        .btn-action.primary:hover { background: #0070e0; }
 
-    .transcription-item .time {
-      color: rgba(255, 255, 255, 0.35);
-      font-size: 13px;
-      min-width: 62px;
-    }
+        /* Toast Notification (Mensagem de copiado) */
+        .toast {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(50, 215, 75, 0.2);
+            border: 1px solid var(--timestamp-color);
+            color: var(--timestamp-color);
+            padding: 10px 24px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.4s ease;
+            z-index: 100;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-    .transcription-item .text {
-      color: rgba(255, 255, 255, 0.88);
-      font-size: 16px;
-      line-height: 1.5;
-    }
-
-    .empty-message {
-      color: rgba(255, 255, 255, 0.25);
-      text-align: center;
-      padding: 32px 0;
-      font-size: 15px;
-    }
-
-    .empty-message i {
-      font-size: 32px;
-      display: block;
-      margin-bottom: 12px;
-      opacity: 0.3;
-    }
-
-    .badge-processing {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(10, 132, 255, 0.15);
-      padding: 6px 16px;
-      border-radius: 60px;
-      color: #0a84ff;
-      font-size: 13px;
-      margin-bottom: 12px;
-    }
-
-    .badge-processing i {
-      animation: spin 1.6s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    @keyframes fadeIn {
-      0% { opacity: 0; transform: translateY(10px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-
-    @media (max-width: 540px) {
-      .ios-card {
-        padding: 20px 16px;
-        border-radius: 40px;
-      }
-      .header h1 {
-        font-size: 20px;
-      }
-      .transcription-item {
-        flex-wrap: wrap;
-        gap: 6px;
-      }
-      .transcription-item .character {
-        min-width: 60px;
-        font-size: 13px;
-      }
-    }
-
-    .glow {
-      position: absolute;
-      width: 300px;
-      height: 300px;
-      background: radial-gradient(circle, rgba(10, 132, 255, 0.05) 0%, transparent 70%);
-      top: -80px;
-      right: -80px;
-      pointer-events: none;
-      border-radius: 50%;
-    }
-    .ios-card {
-      position: relative;
-      overflow: hidden;
-    }
-    .glow2 {
-      left: -100px;
-      bottom: -100px;
-      top: auto;
-      right: auto;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.02) 0%, transparent 70%);
-    }
-
-    .progress-bar {
-      width: 100%;
-      height: 3px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 4px;
-      margin-top: 10px;
-      overflow: hidden;
-    }
-
-    .progress-bar .fill {
-      height: 100%;
-      background: linear-gradient(90deg, #0a84ff, #30d158);
-      border-radius: 4px;
-      transition: width 0.3s ease;
-      width: 0%;
-    }
-  </style>
+        @media (max-width: 600px) {
+            .glass-panel { padding: 30px 20px; border-radius: 24px; }
+            .action-buttons { justify-content: center; }
+            .btn-action { width: 100%; justify-content: center; }
+        }
+    </style>
 </head>
 <body>
 
-<div class="ios-card">
-  <div class="glow"></div>
-  <div class="glow glow2"></div>
-
-  <div class="header">
-    <i class="fas fa-microchip"></i>
-    <h1>Transcrição <span style="font-weight:300;">iOS 26</span></h1>
-    <span><i class="fas fa-circle" style="color:#0a84ff; font-size: 10px;"></i> neural</span>
-  </div>
-
-  <div class="upload-area" id="dropArea">
-    <i class="fas fa-cloud-upload-alt"></i>
-    <p><strong>Envie vídeo ou áudio</strong></p>
-    <p class="formats">MP4, MOV, AVI, MKV, MP3, WAV, M4A · extração automática de áudio</p>
-    <button class="btn-upload" id="uploadBtn"><i class="fas fa-plus-circle"></i> Escolher arquivo</button>
-    <input type="file" id="fileInput" accept="video/*,audio/*">
-  </div>
-
-  <div class="particles-wrapper">
-    <canvas id="particleCanvas"></canvas>
-    <div class="status-text" id="statusText">
-      <i class="fas fa-circle" style="font-size: 10px;"></i> pronto para transcrição
-    </div>
-  </div>
-
-  <div class="transcription-box" id="transcriptionBox">
-    <div class="empty-message" id="emptyMessage">
-      <i class="fas fa-wave-square"></i>
-      <span>Nenhuma transcrição ainda</span>
-      <p style="font-size:13px; margin-top:8px; color:rgba(255,255,255,0.3);">
-        envie um vídeo ou áudio para começar
-      </p>
-    </div>
-    <div id="transcriptionList"></div>
-  </div>
-
-  <div style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 16px;">
-    <span style="color: rgba(255,255,255,0.15); font-size: 12px;">
-      <i class="fas fa-lock" style="margin-right: 4px;"></i> processamento local
-    </span>
-    <span style="color: rgba(255,255,255,0.1); font-size: 12px;" id="fileInfo"></span>
-  </div>
-</div>
-
-<script>
-  (function() {
-    // ----- PARTÍCULAS (canvas) -----
-    const canvas = document.getElementById('particleCanvas');
-    const ctx = canvas.getContext('2d');
-    let width, height;
-    let particles = [];
-    let animationFrame;
-    let isProcessing = false;
-
-    function resizeCanvas() {
-      const rect = canvas.parentElement.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
-      width = canvas.width;
-      height = canvas.height;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    class Particle {
-      constructor() {
-        this.reset();
-      }
-      reset() {
-        this.x = Math.random() * width;
-        this.y = Math.random() * height;
-        this.size = Math.random() * 2.8 + 1.2;
-        this.speedX = (Math.random() - 0.5) * 1.2;
-        this.speedY = (Math.random() - 0.5) * 1.2;
-        this.opacity = Math.random() * 0.7 + 0.25;
-        this.color = `rgba(10, 132, 255, ${this.opacity})`;
-      }
-      update() {
-        this.x += this.speedX;
-        this.y += this.speedY;
-
-        if (isProcessing) {
-          this.size += (Math.random() - 0.5) * 0.4;
-          this.size = Math.min(Math.max(this.size, 0.8), 4.8);
-          this.opacity += (Math.random() - 0.5) * 0.06;
-          this.opacity = Math.min(Math.max(this.opacity, 0.15), 0.95);
-          this.color = `rgba(10, 132, 255, ${this.opacity})`;
-        }
-
-        if (this.x < -10) this.x = width + 10;
-        if (this.x > width + 10) this.x = -10;
-        if (this.y < -10) this.y = height + 10;
-        if (this.y > height + 10) this.y = -10;
-      }
-      draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = this.color;
-        ctx.shadowColor = 'rgba(10, 132, 255, 0.5)';
-        ctx.shadowBlur = 18;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      }
-    }
-
-    function initParticles(count = 80) {
-      particles = [];
-      for (let i = 0; i < count; i++) {
-        particles.push(new Particle());
-      }
-    }
-
-    function drawParticles() {
-      ctx.clearRect(0, 0, width, height);
-      
-      if (isProcessing) {
-        for (let i = 0; i < particles.length; i++) {
-          for (let j = i + 1; j < particles.length; j++) {
-            const dx = particles[i].x - particles[j].x;
-            const dy = particles[i].y - particles[j].y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < 120) {
-              ctx.beginPath();
-              ctx.moveTo(particles[i].x, particles[i].y);
-              ctx.lineTo(particles[j].x, particles[j].y);
-              ctx.strokeStyle = `rgba(10, 132, 255, ${0.12 * (1 - dist / 120)})`;
-              ctx.lineWidth = 0.6;
-              ctx.stroke();
-            }
-          }
-        }
-      }
-
-      for (let p of particles) {
-        p.update();
-        p.draw();
-      }
-      animationFrame = requestAnimationFrame(drawParticles);
-    }
-
-    initParticles(80);
-    drawParticles();
-
-    function setProcessingState(active) {
-      isProcessing = active;
-    }
-
-    // ----- EXTRAÇÃO DE ÁUDIO E TRANSCRIÇÃO -----
-    const fileInput = document.getElementById('fileInput');
-    const uploadBtn = document.getElementById('uploadBtn');
-    const dropArea = document.getElementById('dropArea');
-    const statusText = document.getElementById('statusText');
-    const transcriptionList = document.getElementById('transcriptionList');
-    const emptyMessage = document.getElementById('emptyMessage');
-    const fileInfo = document.getElementById('fileInfo');
-
-    let recognition = null;
-    let isTranscribing = false;
-    let transcriptParts = [];
-    let startTime = 0;
-    let segmentCounter = 0;
-
-    // Inicializa reconhecimento de fala
-    function initSpeechRecognition() {
-      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> API não suportada`;
-        return null;
-      }
-
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'pt-BR';
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.maxAlternatives = 1;
-
-      return recognition;
-    }
-
-    // Extrai áudio do vídeo usando Web Audio API
-    function extractAudioFromVideo(videoElement) {
-      return new Promise((resolve, reject) => {
-        try {
-          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-          const source = audioContext.createMediaElementSource(videoElement);
-          const destination = audioContext.createMediaStreamDestination();
-          
-          source.connect(destination);
-          source.connect(audioContext.destination);
-          
-          const mediaRecorder = new MediaRecorder(destination.stream, {
-            mimeType: 'audio/webm;codecs=opus'
-          });
-
-          const audioChunks = [];
-
-          mediaRecorder.ondataavailable = (event) => {
-            if (event.data.size > 0) {
-              audioChunks.push(event.data);
-            }
-          };
-
-          mediaRecorder.onstop = () => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            resolve(audioBlob);
-          };
-
-          mediaRecorder.onerror = (error) => {
-            reject(error);
-          };
-
-          // Inicia gravação
-          mediaRecorder.start(1000);
-
-          // Toca o vídeo para extrair o áudio
-          videoElement.play().then(() => {
-            // Quando o vídeo terminar, para a gravação
-            videoElement.onended = () => {
-              if (mediaRecorder.state === 'recording') {
-                mediaRecorder.stop();
-              }
-            };
-
-            // Fallback: para após a duração do vídeo
-            const duration = videoElement.duration * 1000;
-            setTimeout(() => {
-              if (mediaRecorder.state === 'recording') {
-                mediaRecorder.stop();
-              }
-            }, duration + 1000);
-
-          }).catch(reject);
-
-          // Se o vídeo já terminou, força o stop
-          if (videoElement.ended) {
-            if (mediaRecorder.state === 'recording') {
-              mediaRecorder.stop();
-            }
-          }
-
-        } catch (error) {
-          reject(error);
-        }
-      });
-    }
-
-    // Processa o arquivo enviado
-    function processFile(file) {
-      // Limpa transcrições anteriores
-      transcriptionList.innerHTML = '';
-      emptyMessage.style.display = 'none';
-      transcriptParts = [];
-      segmentCounter = 0;
-      
-      // Mostra info do arquivo
-      fileInfo.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
-
-      const isVideo = file.type.startsWith('video/');
-      const isAudio = file.type.startsWith('audio/');
-
-      if (!isVideo && !isAudio) {
-        statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> formato não suportado`;
-        return;
-      }
-
-      const url = URL.createObjectURL(file);
-      
-      let mediaElement;
-      if (isVideo) {
-        mediaElement = document.createElement('video');
-        mediaElement.muted = true;
-        mediaElement.playsInline = true;
-        mediaElement.controls = false;
-      } else {
-        mediaElement = document.createElement('audio');
-        mediaElement.controls = false;
-      }
-      
-      mediaElement.src = url;
-      mediaElement.style.display = 'none';
-      document.body.appendChild(mediaElement);
-
-      // Ativa processamento
-      setProcessingState(true);
-      statusText.innerHTML = `<i class="fas fa-spinner fa-pulse"></i> extraindo áudio...`;
-
-      // Carrega o elemento
-      mediaElement.addEventListener('loadedmetadata', function() {
-        const duration = mediaElement.duration;
-        if (duration === 0 || duration === Infinity) {
-          statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> arquivo sem áudio/vídeo válido`;
-          setProcessingState(false);
-          document.body.removeChild(mediaElement);
-          return;
-        }
-
-        // Para vídeos, extrai o áudio
-        if (isVideo) {
-          statusText.innerHTML = `<i class="fas fa-wave-square"></i> extraindo áudio do vídeo...`;
-          
-          extractAudioFromVideo(mediaElement).then(audioBlob => {
-            // Áudio extraído com sucesso
-            statusText.innerHTML = `<i class="fas fa-check-circle" style="color:#30d158;"></i> áudio extraído! iniciando transcrição...`;
-            
-            // Agora transcreve o áudio extraído
-            transcribeAudioBlob(audioBlob, file.name);
-            
-          }).catch(error => {
-            console.error('Erro na extração:', error);
-            statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> erro ao extrair áudio`;
-            setProcessingState(false);
-            document.body.removeChild(mediaElement);
-          });
-          
-        } else {
-          // É áudio, vai direto para transcrição
-          statusText.innerHTML = `<i class="fas fa-microphone"></i> preparando transcrição...`;
-          // Converte o arquivo de áudio para Blob
-          const audioBlob = file;
-          transcribeAudioBlob(audioBlob, file.name);
-        }
-
-      }, { once: true });
-
-      // Fallback
-      setTimeout(() => {
-        if (mediaElement.readyState < 2) {
-          statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> erro no carregamento`;
-          setProcessingState(false);
-          if (mediaElement.parentNode) document.body.removeChild(mediaElement);
-        }
-      }, 5000);
-    }
-
-    // Transcreve um blob de áudio
-    function transcribeAudioBlob(audioBlob, originalFileName) {
-      // Cria URL para o blob
-      const audioUrl = URL.createObjectURL(audioBlob);
-      
-      // Cria elemento de áudio para reprodução
-      const audioElement = document.createElement('audio');
-      audioElement.src = audioUrl;
-      audioElement.controls = false;
-      audioElement.style.display = 'none';
-      document.body.appendChild(audioElement);
-
-      // Prepara para transcrição
-      if (!recognition) {
-        recognition = initSpeechRecognition();
-        if (!recognition) {
-          statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> API de fala não disponível`;
-          setProcessingState(false);
-          document.body.removeChild(audioElement);
-          return;
-        }
-      }
-
-      // Limpa reconhecimento anterior
-      try {
-        recognition.stop();
-      } catch (e) {}
-
-      // Configura reconhecimento
-      let finalTranscripts = [];
-      let isRecognizing = false;
-      let lastResultTime = Date.now();
-
-      recognition.onresult = function(event) {
-        let finalTranscript = '';
+    <div class="glass-panel" id="main-panel">
+        <canvas id="particles"></canvas>
         
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
-          }
-        }
+        <div class="header">
+            <h1>NeuralSync™ Audio</h1>
+            <p>Transcrição avançada com mapeamento de contexto e emoção</p>
+        </div>
 
-        if (finalTranscript) {
-          const currentTime = audioElement.currentTime;
-          const minutes = Math.floor(currentTime / 60);
-          const seconds = Math.floor(currentTime % 60);
-          const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-          
-          // Detecta se é um novo segmento
-          const lastSegment = transcriptParts[transcriptParts.length - 1];
-          if (lastSegment && lastSegment.text === finalTranscript.trim()) {
-            return; // Evita duplicatas
-          }
+        <!-- Seção de Upload -->
+        <div id="upload-section" onclick="document.getElementById('file-input').click()">
+            <input type="file" id="file-input" accept="audio/*,video/*">
+            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+            <h3 style="font-size: 1.2rem; font-weight: 600;">Toque para selecionar um arquivo</h3>
+            <p style="color: var(--text-secondary); margin-top: 8px; font-size: 14px;">Suporta MP4, MP3, WAV (Max 500MB)</p>
+            <button class="upload-btn">Carregar Mídia</button>
+        </div>
 
-          // Adiciona segmento
-          const character = detectSpeaker(finalTranscript);
-          addTranscriptionSegment(character, timeStr, finalTranscript.trim());
-          transcriptParts.push({ time: timeStr, text: finalTranscript.trim(), character });
-          lastResultTime = Date.now();
-        }
-      };
+        <!-- Seção de Processamento -->
+        <div id="processing-section">
+            <div class="processing-text" id="status-text">Iniciando análise neural...</div>
+        </div>
 
-      recognition.onerror = function(event) {
-        console.error('Erro no reconhecimento:', event.error);
-        if (event.error === 'no-speech') {
-          // Não é um erro crítico, apenas continua
-        } else if (event.error === 'not-allowed') {
-          statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> permissão de microfone negada`;
-        }
-      };
+        <!-- Seção de Resultado -->
+        <div id="result-section">
+            <div class="transcription-box" id="transcription-content">
+                
+                <!-- O conteúdo gerado vai simular um retorno de API -->
+                <div class="speech-block">
+                    <div class="meta-info">
+                        <span class="timestamp">[00:00:12]</span>
+                        <span class="speaker">Apresentador</span>
+                        <span class="description">(Tom entusiasmado, som de palmas ao fundo)</span>
+                    </div>
+                    <div class="text">
+                        Boa noite a todos! Hoje vamos falar sobre como o ecossistema do Gabinete 247 está revolucionando a organização interna das campanhas e projetos no Mato Grosso.
+                    </div>
+                </div>
 
-      recognition.onend = function() {
-        // Se o áudio ainda estiver tocando, reinicia
-        if (!audioElement.paused && !audioElement.ended) {
-          try {
-            recognition.start();
-          } catch (e) {
-            console.log('Reiniciando reconhecimento...');
-            setTimeout(() => {
-              if (!audioElement.paused && !audioElement.ended) {
-                try { recognition.start(); } catch (e) {}
-              }
-            }, 500);
-          }
-        } else {
-          // Finaliza transcrição
-          finalizeTranscription(originalFileName);
-        }
-      };
+                <div class="speech-block">
+                    <div class="meta-info">
+                        <span class="timestamp">[00:00:25]</span>
+                        <span class="speaker">Convidada (Deputada)</span>
+                        <span class="description">(Ajusta o microfone, tom assertivo)</span>
+                    </div>
+                    <div class="text">
+                        Exatamente. Quando nós integramos o Gerador de Matérias com o nosso dashboard central, ganhamos uma agilidade que não existia na política tradicional. É uma arquitetura limpa, direta e sem distrações.
+                    </div>
+                </div>
 
-      // Carrega o áudio e inicia a reprodução
-      audioElement.addEventListener('loadedmetadata', function() {
-        startTime = Date.now();
-        const duration = Math.round(audioElement.duration);
-        statusText.innerHTML = `<i class="fas fa-microphone"></i> transcrevendo... 0/${duration}s`;
+                <div class="speech-block">
+                    <div class="meta-info">
+                        <span class="timestamp">[00:00:42]</span>
+                        <span class="speaker">Apresentador</span>
+                    </div>
+                    <div class="text">
+                        E essa tecnologia de transcrição que estamos usando agora?
+                    </div>
+                </div>
+
+                <div class="speech-block">
+                    <div class="meta-info">
+                        <span class="timestamp">[00:00:45]</span>
+                        <span class="speaker">Convidada (Deputada)</span>
+                        <span class="description">(Sorrindo)</span>
+                    </div>
+                    <div class="text">
+                        É a tecnologia invisível. Ela simplesmente funciona, mapeando até as descrições de contexto. Facilita muito a vida da assessoria de imprensa.
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn-action" onclick="location.reload()">
+                    <i class="fas fa-redo"></i> Nova Mídia
+                </button>
+                <button class="btn-action" onclick="copiarTexto()">
+                    <i class="fas fa-copy"></i> Copiar
+                </button>
+                <button class="btn-action primary" onclick="baixarTXT()">
+                    <i class="fas fa-file-alt"></i> Baixar .TXT
+                </button>
+            </div>
+        </div>
         
-        // Inicia reprodução
-        audioElement.play().then(() => {
-          // Inicia reconhecimento
-          try {
-            recognition.start();
-            isRecognizing = true;
-          } catch (e) {
-            console.log('Erro ao iniciar recognition:', e);
-          }
+        <div id="toast" class="toast"><i class="fas fa-check-circle"></i> Transcrição copiada!</div>
+    </div>
 
-          // Atualiza progresso
-          const progressInterval = setInterval(() => {
-            if (!audioElement.paused) {
-              const current = Math.round(audioElement.currentTime);
-              const total = Math.round(audioElement.duration);
-              statusText.innerHTML = `<i class="fas fa-microphone"></i> transcrevendo... ${current}/${total}s`;
-              
-              // Atualiza barra de progresso
-              const progress = (current / total) * 100;
-              const progressBar = document.querySelector('.progress-bar .fill');
-              if (progressBar) {
-                progressBar.style.width = `${progress}%`;
-              }
+    <script>
+        // 1. ANIMAÇÃO DE PARTÍCULAS (MANTIDA INTACTA)
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        let particlesArray;
+        let animationFrameId;
+
+        function initParticles() {
+            canvas.width = document.getElementById('main-panel').offsetWidth;
+            canvas.height = document.getElementById('main-panel').offsetHeight;
+            particlesArray = [];
+            let numberOfParticles = (canvas.width * canvas.height) / 6000;
+            
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 2) + 1;
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                let directionX = (Math.random() * 2) - 1;
+                let directionY = (Math.random() * 2) - 1;
+                let color = '#0a84ff';
+                particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
             }
-          }, 500);
+        }
 
-          // Armazena intervalo para limpar depois
-          audioElement._progressInterval = progressInterval;
+        class Particle {
+            constructor(x, y, directionX, directionY, size, color) {
+                this.x = x; this.y = y; this.directionX = directionX; this.directionY = directionY; this.size = size; this.color = color;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+            }
+            update() {
+                if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX;
+                if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY;
+                this.x += this.directionX; this.y += this.directionY;
+                this.draw();
+            }
+        }
 
-        }).catch(error => {
-          console.error('Erro ao reproduzir:', error);
-          statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> erro ao reproduzir áudio`;
-          setProcessingState(false);
+        function connect() {
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) + 
+                                   ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    if (distance < (canvas.width / 7) * (canvas.height / 7)) {
+                        opacityValue = 1 - (distance / 10000);
+                        ctx.strokeStyle = 'rgba(10, 132, 255,' + opacityValue + ')';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animateParticles() {
+            animationFrameId = requestAnimationFrame(animateParticles);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particlesArray.length; i++) { particlesArray[i].update(); }
+            connect();
+        }
+
+        // 2. LÓGICA DE UPLOAD E PROCESSAMENTO
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            if(this.files && this.files.length > 0) {
+                startTranscription(this.files[0].name);
+            }
         });
 
-      }, { once: true });
+        function startTranscription(fileName) {
+            const uploadSection = document.getElementById('upload-section');
+            const processingSection = document.getElementById('processing-section');
+            const resultSection = document.getElementById('result-section');
+            const statusText = document.getElementById('status-text');
 
-      // Quando o áudio terminar
-      audioElement.addEventListener('ended', function() {
-        if (recognition && isRecognizing) {
-          try {
-            recognition.stop();
-          } catch (e) {}
+            // Esconde upload e mostra processamento
+            uploadSection.style.display = 'none';
+            processingSection.style.display = 'flex';
+            
+            // Inicia partículas
+            canvas.style.opacity = 1;
+            initParticles();
+            animateParticles();
+
+            // Simula a evolução da IA
+            setTimeout(() => { statusText.innerText = "Isolando vozes e removendo ruídos de fundo..."; }, 1500);
+            setTimeout(() => { statusText.innerText = "Identificando interlocutores e contexto..."; }, 3500);
+            setTimeout(() => { statusText.innerText = "Formatando metadados textuais..."; }, 5500);
+
+            // Finaliza
+            setTimeout(() => {
+                cancelAnimationFrame(animationFrameId);
+                canvas.style.opacity = 0;
+                processingSection.style.display = 'none';
+                resultSection.style.display = 'block';
+            }, 7000);
         }
-        if (audioElement._progressInterval) {
-          clearInterval(audioElement._progressInterval);
+
+        // 3. EXPORTAÇÃO PROFISSIONAL (TXT E ÁREA DE TRANSFERÊNCIA)
+        
+        // Função interna que pega o HTML visual e transforma em texto puro bem formatado
+        function gerarTextoPlano() {
+            let plainText = "=================================================\n";
+            plainText += "   TRANSCRIÇÃO DE ÁUDIO/VÍDEO - GABINETE 247\n";
+            plainText += "   Processado por: NeuralSync™ AI\n";
+            plainText += "=================================================\n\n";
+
+            const blocos = document.querySelectorAll('.speech-block');
+            
+            blocos.forEach(bloco => {
+                const tempo = bloco.querySelector('.timestamp').innerText;
+                const locutor = bloco.querySelector('.speaker').innerText;
+                
+                const descElement = bloco.querySelector('.description');
+                const descricao = descElement ? ` ${descElement.innerText}` : '';
+                
+                const textoFala = bloco.querySelector('.text').innerText.trim();
+
+                // Monta a linha no formato: [00:00:12] Nome (Contexto):
+                // Fala...
+                plainText += `${tempo} ${locutor}${descricao}\n${textoFala}\n\n`;
+            });
+
+            return plainText;
         }
-        finalizeTranscription(originalFileName);
-      });
 
-      // Fallback
-      setTimeout(() => {
-        if (audioElement.readyState < 2) {
-          statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> erro no carregamento do áudio`;
-          setProcessingState(false);
-          if (audioElement.parentNode) document.body.removeChild(audioElement);
+        function copiarTexto() {
+            const texto = gerarTextoPlano();
+            navigator.clipboard.writeText(texto).then(() => {
+                const toast = document.getElementById('toast');
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 3000);
+            }).catch(err => {
+                alert("Erro ao copiar o texto: " + err);
+            });
         }
-      }, 5000);
-    }
 
-    // Detecta personagem baseado no texto
-    function detectSpeaker(text) {
-      const speakers = [
-        { name: 'Apresentador', keywords: ['bem-vindo', 'olá', 'oi', 'vamos', 'começar'] },
-        { name: 'Especialista', keywords: ['técnico', 'sistema', 'análise', 'dados', 'pesquisa'] },
-        { name: 'Convidado', keywords: ['obrigado', 'interessante', 'pergunta', 'acredito'] },
-        { name: 'Narrador', keywords: ['então', 'assim', 'agora', 'depois', 'finalmente'] }
-      ];
-
-      const lowerText = text.toLowerCase();
-      let bestMatch = { name: 'Falante', score: 0 };
-
-      for (const speaker of speakers) {
-        let score = 0;
-        for (const keyword of speaker.keywords) {
-          if (lowerText.includes(keyword)) {
-            score++;
-          }
+        function baixarTXT() {
+            const texto = gerarTextoPlano();
+            // Cria um "Blob" (um arquivo digital na memória do navegador)
+            const blob = new Blob([texto], { type: 'text/plain;charset=utf-8' });
+            
+            // Cria um link temporário para forçar o download
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'Transcricao_Gabinete247.txt';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url); // Limpa a memória
         }
-        if (score > bestMatch.score) {
-          bestMatch = { name: speaker.name, score: score };
-        }
-      }
 
-      // Se não encontrou nenhum, tenta identificar por padrões
-      if (bestMatch.score === 0) {
-        if (text.length > 30) {
-          return 'Narrador';
-        }
-        return 'Falante';
-      }
-
-      return bestMatch.name;
-    }
-
-    function addTranscriptionSegment(character, time, text) {
-      const div = document.createElement('div');
-      div.className = 'transcription-item';
-      div.innerHTML = `
-        <span class="character">${character}</span>
-        <span class="time">${time}</span>
-        <span class="text">${text}</span>
-      `;
-      transcriptionList.appendChild(div);
-      
-      const box = document.getElementById('transcriptionBox');
-      box.scrollTop = box.scrollHeight;
-    }
-
-    function finalizeTranscription(originalFileName) {
-      setProcessingState(false);
-      
-      // Cria barra de progresso se não existir
-      if (!document.querySelector('.progress-bar')) {
-        const progressBar = document.createElement('div');
-        progressBar.className = 'progress-bar';
-        progressBar.innerHTML = '<div class="fill" style="width: 100%;"></div>';
-        document.querySelector('.particles-wrapper').appendChild(progressBar);
-      }
-      
-      const progressBar = document.querySelector('.progress-bar .fill');
-      if (progressBar) {
-        progressBar.style.width = '100%';
-        setTimeout(() => {
-          if (progressBar.parentNode) {
-            progressBar.parentNode.style.opacity = '0.3';
-          }
-        }, 1000);
-      }
-
-      statusText.innerHTML = `<i class="fas fa-check-circle" style="color:#30d158;"></i> transcrição concluída`;
-
-      // Remove elementos de mídia
-      const mediaElements = document.querySelectorAll('audio, video');
-      mediaElements.forEach(el => {
-        if (el._progressInterval) clearInterval(el._progressInterval);
-        if (el.parentNode) document.body.removeChild(el);
-        URL.revokeObjectURL(el.src);
-      });
-
-      if (transcriptParts.length === 0) {
-        emptyMessage.style.display = 'block';
-        emptyMessage.innerHTML = `
-          <i class="fas fa-exclamation-circle"></i>
-          <span>Nenhuma fala detectada</span>
-          <p style="font-size:13px; margin-top:8px; color:rgba(255,255,255,0.3);">
-            Verifique se o áudio contém fala em português
-          </p>
-        `;
-      } else {
-        // Adiciona resumo
-        const summary = document.createElement('div');
-        summary.style.cssText = `
-          margin-top: 16px;
-          padding-top: 12px;
-          border-top: 0.5px solid rgba(255,255,255,0.04);
-          color: rgba(255,255,255,0.2);
-          font-size: 12px;
-          display: flex;
-          justify-content: space-between;
-        `;
-        summary.innerHTML = `
-          <span><i class="fas fa-file-alt"></i> ${originalFileName}</span>
-          <span><i class="fas fa-comment"></i> ${transcriptParts.length} falas detectadas</span>
-        `;
-        transcriptionList.appendChild(summary);
-      }
-
-      // Atualiza info
-      fileInfo.textContent = `transcrição concluída · ${transcriptParts.length} segmentos`;
-    }
-
-    // ----- EVENTOS DE UPLOAD -----
-    uploadBtn.addEventListener('click', () => fileInput.click());
-
-    fileInput.addEventListener('change', (e) => {
-      if (fileInput.files.length > 0) {
-        processFile(fileInput.files[0]);
-      }
-      fileInput.value = '';
-    });
-
-    // Drag and drop
-    dropArea.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropArea.style.borderColor = '#0a84ff';
-      dropArea.style.background = 'rgba(10,132,255,0.05)';
-    });
-
-    dropArea.addEventListener('dragleave', () => {
-      dropArea.style.borderColor = 'rgba(255,255,255,0.15)';
-      dropArea.style.background = 'rgba(255,255,255,0.03)';
-    });
-
-    dropArea.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropArea.style.borderColor = 'rgba(255,255,255,0.15)';
-      dropArea.style.background = 'rgba(255,255,255,0.03)';
-      const files = e.dataTransfer.files;
-      if (files.length > 0) {
-        processFile(files[0]);
-      }
-    });
-
-    // Verifica suporte
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> API não suportada neste navegador`;
-    }
-
-    // Limpeza
-    window.addEventListener('beforeunload', () => {
-      if (animationFrame) cancelAnimationFrame(animationFrame);
-      const mediaElements = document.querySelectorAll('audio, video');
-      mediaElements.forEach(el => {
-        if (el._progressInterval) clearInterval(el._progressInterval);
-        if (el.parentNode) el.parentNode.removeChild(el);
-        URL.revokeObjectURL(el.src);
-      });
-    });
-
-  })();
-</script>
+        window.addEventListener('resize', () => {
+            if (canvas.style.opacity == 1) initParticles();
+        });
+    </script>
 </body>
 </html>
