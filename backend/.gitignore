@@ -1,0 +1,14 @@
+# Ignora arquivos temporários de áudio/vídeo
+temp_*
+*.mp3
+*.mp4
+*.wav
+
+# Ignora pastas de ambiente virtual do Python
+venv/
+env/
+__pycache__/
+
+# Ignora o modelo da IA baixado (para não lotar o Git)
+models/
+*.bin
