@@ -213,7 +213,6 @@
             background: #dde3ec;
         }
 
-        /* ===== BOTÕES DE FORMATAÇÃO E NEGRITO ===== */
         .toolbar {
             display: flex; 
             gap: 0.4rem; 
@@ -322,7 +321,6 @@
             margin-top: 0.8rem;
         }
 
-        /* Preview */
         .preview-section {
             display: flex;
             flex-direction: column;
@@ -382,14 +380,13 @@
         }
 
         .post-content {
-            padding: 0.8rem 0.8rem 2.5rem; /* Ajustado para deixar um espaço vazio na parte de baixo */
+            padding: 0.8rem 0.8rem 2.5rem;
             flex: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
 
-        /* ===== PERFIL - DENTRO DO CONTEÚDO, PRÓXIMO AO TEXTO (~4X MAIOR) ===== */
         .post-profile {
             width: 100%;
             flex-shrink: 0;
@@ -453,7 +450,6 @@
             color: #1a5fb4;
         }
 
-        /* ===== CONTAINERS PARA DOWNLOAD ===== */
         #downloadContainer1080,
         #downloadContainer1350 {
             position: absolute;
@@ -473,14 +469,13 @@
         }
 
         .download-content {
-            padding: 45px 45px 160px 45px; /* Ajustado para deixar bastante espaço em branco na parte inferior da imagem real */
+            padding: 45px 45px 160px 45px;
             flex: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
 
-        /* ===== PERFIL NO DOWNLOAD - DENTRO DO CONTEÚDO (~4X MAIOR) ===== */
         .download-profile {
             width: 100%;
             flex-shrink: 0;
@@ -561,7 +556,6 @@
             accent-color: #1a5fb4;
         }
 
-        /* ===== RESPONSIVIDADE (MOBILE) ===== */
         @media (max-width: 600px) {
             body {
                 padding: 0.5rem;
@@ -665,7 +659,6 @@
                 </div>
             </div>
 
-            <!-- CONTROLE: Slider de Tamanho do Texto -->
             <div class="field">
                 <label for="textSize"><i class="fas fa-text-height"></i> Tamanho do Texto</label>
                 <input type="range" id="textSize" min="50" max="150" value="100" style="width: 100%; margin-bottom: 0.5rem;">
@@ -677,7 +670,6 @@
             </div>
 
             <div class="field">
-                <!-- CONTROLES: Formatação e Negrito -->
                 <label style="margin-bottom: 0.4rem;"><i class="fas fa-paragraph"></i> Texto do post</label>
                 <div class="toolbar">
                     <button type="button" class="btn-format active" data-align="left" title="Alinhar à esquerda"><i class="fas fa-align-left"></i></button>
@@ -729,7 +721,6 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
             </div>
         </div>
 
-        <!-- PREVIEWS -->
         <div class="preview-section">
             <div class="card-preview">
                 <div class="card-header">
@@ -738,10 +729,9 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
                 </div>
                 <div class="card-body">
                     <div class="post-image" id="preview1080">
-                        <!-- Perfil e texto agrupados dentro de post-content -->
                         <div class="post-content" id="postContent1080">
                             <div class="post-profile">
-                                <img id="profilePreview1080" src="perfil.png" alt="Perfil" onerror="handleAvatarError()">
+                                <img id="profilePreview1080" src="../assets/perfil.png" alt="Perfil" onerror="handleAvatarError()">
                             </div>
                             <div class="post-text" id="textPreview1080">📌 TRABALHO QUE AVANÇA</div>
                             <div class="post-materia" id="materiaPreview1080">
@@ -759,10 +749,9 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
                 </div>
                 <div class="card-body">
                     <div class="post-image wide" id="preview1350">
-                        <!-- Perfil e texto agrupados dentro de post-content -->
                         <div class="post-content" id="postContent1350">
                             <div class="post-profile">
-                                <img id="profilePreview1350" src="perfil.png" alt="Perfil" onerror="handleAvatarError()">
+                                <img id="profilePreview1350" src="../assets/perfil.png" alt="Perfil" onerror="handleAvatarError()">
                             </div>
                             <div class="post-text" id="textPreview1350">📌 TRABALHO QUE AVANÇA</div>
                             <div class="post-materia" id="materiaPreview1350">
@@ -780,11 +769,10 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
     </div>
 </div>
 
-<!-- ===== DOWNLOAD CONTAINERS ===== -->
 <div id="downloadContainer1080">
     <div class="download-content" id="downloadContent1080">
         <div class="download-profile">
-            <img id="downloadProfile1080" src="perfil.png" alt="Perfil" crossorigin="anonymous">
+            <img id="downloadProfile1080" src="../assets/perfil.png" alt="Perfil" crossorigin="anonymous">
         </div>
         <div class="download-text" id="downloadText1080">📌 TRABALHO QUE AVANÇA</div>
         <div class="download-materia" id="downloadMateria1080">
@@ -796,7 +784,7 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
 <div id="downloadContainer1350">
     <div class="download-content" id="downloadContent1350">
         <div class="download-profile">
-            <img id="downloadProfile1350" src="perfil.png" alt="Perfil" crossorigin="anonymous">
+            <img id="downloadProfile1350" src="../assets/perfil.png" alt="Perfil" crossorigin="anonymous">
         </div>
         <div class="download-text" id="downloadText1350">📌 TRABALHO QUE AVANÇA</div>
         <div class="download-materia" id="downloadMateria1350">
@@ -819,13 +807,11 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
         const loading = document.getElementById('loading');
         const avatarError = document.getElementById('avatarError');
         
-        // Elementos Novos
         const textSizeSlider = document.getElementById('textSize');
         const textSizeVal = document.getElementById('textSizeVal');
         const btnBold = document.getElementById('btnBold');
         const alignBtns = document.querySelectorAll('.btn-format');
 
-        // Preview
         const textPreview1080 = document.getElementById('textPreview1080');
         const textPreview1350 = document.getElementById('textPreview1350');
         const materiaImg1080 = document.getElementById('materiaImg1080');
@@ -833,7 +819,6 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
         const postContent1080 = document.getElementById('postContent1080');
         const postContent1350 = document.getElementById('postContent1350');
 
-        // Download
         const downloadText1080 = document.getElementById('downloadText1080');
         const downloadText1350 = document.getElementById('downloadText1350');
         const downloadMateriaImg1080 = document.getElementById('downloadMateriaImg1080');
@@ -866,69 +851,66 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
         }
 
         function saveDraft() {
-            localStorage.setItem('chicoPostText', textInput.value);
-            localStorage.setItem('chicoPostSize', textSizeSlider.value);
-            localStorage.setItem('chicoPostAlign', currentAlign);
-            if(materiaDataUrl) {
-                try {
+            try {
+                localStorage.setItem('chicoPostText', textInput.value);
+                localStorage.setItem('chicoPostSize', textSizeSlider.value);
+                localStorage.setItem('chicoPostAlign', currentAlign);
+                if(materiaDataUrl) {
                     localStorage.setItem('chicoPostImage', materiaDataUrl);
-                } catch(e) {
-                    // Ignora caso a imagem seja maior que a cota do localStorage (aprox 5mb)
-                    console.warn("Imagem grande demais para salvar no rascunho.");
+                } else {
+                    localStorage.removeItem('chicoPostImage');
                 }
-            } else {
-                localStorage.removeItem('chicoPostImage');
+            } catch(e) {
+                console.warn("Erro ao salvar rascunho:", e);
             }
         }
 
         function loadDraft() {
-            const savedText = localStorage.getItem('chicoPostText');
-            const savedSize = localStorage.getItem('chicoPostSize');
-            const savedAlign = localStorage.getItem('chicoPostAlign');
-            const savedImage = localStorage.getItem('chicoPostImage');
+            try {
+                const savedText = localStorage.getItem('chicoPostText');
+                const savedSize = localStorage.getItem('chicoPostSize');
+                const savedAlign = localStorage.getItem('chicoPostAlign');
+                const savedImage = localStorage.getItem('chicoPostImage');
 
-            if (savedText !== null) textInput.value = savedText;
-            if (savedSize !== null) {
-                textSizeSlider.value = savedSize;
-                textSizeVal.textContent = savedSize + '%';
+                if (savedText !== null) textInput.value = savedText;
+                if (savedSize !== null) {
+                    textSizeSlider.value = savedSize;
+                    textSizeVal.textContent = savedSize + '%';
+                }
+                if (savedAlign !== null) {
+                    currentAlign = savedAlign;
+                }
+                if (savedImage !== null) {
+                    materiaDataUrl = savedImage;
+                    materiaFileName.textContent = 'Imagem restaurada do rascunho';
+                }
+                
+                updateAlignButtons();
+            } catch(e) {
+                console.warn("Erro ao carregar rascunho:", e);
             }
-            if (savedAlign !== null) {
-                currentAlign = savedAlign;
-            }
-            if (savedImage !== null) {
-                materiaDataUrl = savedImage;
-                materiaFileName.textContent = 'Imagem restaurada do rascunho';
-            }
-            
-            updateAlignButtons();
         }
 
         function updateAll() {
             const rawText = textInput.value;
             const htmlText = renderTextWithBold(rawText);
 
-            // Preview Text
             textPreview1080.innerHTML = htmlText || '&nbsp;';
             textPreview1350.innerHTML = htmlText || '&nbsp;';
-
-            // Download Text
             downloadText1080.innerHTML = htmlText || '&nbsp;';
             downloadText1350.innerHTML = htmlText || '&nbsp;';
             
-            // Ajuste de Tamanho do Texto via Slider
             const scale = parseInt(textSizeSlider.value) / 100;
             textPreview1080.style.fontSize = (0.75 * scale) + 'rem';
             textPreview1350.style.fontSize = (0.75 * scale) + 'rem';
             downloadText1080.style.fontSize = (28 * scale) + 'px';
             downloadText1350.style.fontSize = (24 * scale) + 'px';
 
-            // Ajuste de Alinhamento
             textPreview1080.style.textAlign = currentAlign;
             textPreview1350.style.textAlign = currentAlign;
             downloadText1080.style.textAlign = currentAlign;
             downloadText1350.style.textAlign = currentAlign;
 
-            // Matéria
             if (materiaDataUrl) {
                 materiaImg1080.src = materiaDataUrl;
                 materiaImg1080.style.display = 'block';
@@ -960,7 +942,6 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
                 downloadMateriaImg1350.style.display = 'none';
             }
 
-            // Centralizar Content
             postContent1080.style.justifyContent = 'center';
             postContent1350.style.justifyContent = 'center';
             downloadContent1080.style.justifyContent = 'center';
@@ -981,7 +962,7 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
             const img = new Image();
             img.onload = () => avatarError.classList.remove('show');
             img.onerror = () => avatarError.classList.add('show');
-            img.src = 'perfil.png';
+            img.src = '../assets/perfil.png';
         }
 
         async function downloadImage(container, filename) {
@@ -1025,7 +1006,6 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
                     setTimeout(() => statusMsg.classList.remove('show'), 3000);
                 };
 
-                // iOS: Chama a aba de compartilhamento que tem a opção "Salvar Imagem"
                 if (isIOS && navigator.canShare) {
                     canvas.toBlob(async (blob) => {
                         const file = new File([blob], filename, { type: 'image/png' });
@@ -1038,7 +1018,6 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
                                 statusText.textContent = `✅ Selecione "Salvar Imagem"!`;
                                 setTimeout(() => statusMsg.classList.remove('show'), 3000);
                             } catch (e) {
-                                // Se o usuário cancelar ou a API falhar, não fazemos nada (ou usamos fallback)
                                 if (e.name !== 'AbortError') doFallback();
                             }
                         } else {
@@ -1059,7 +1038,6 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
             }
         }
 
-        // Eventos
         updateBtn.addEventListener('click', updateAll);
         
         textSizeSlider.addEventListener('input', function() {
@@ -1103,7 +1081,6 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
             textSizeVal.textContent = '100%';
             currentAlign = 'left';
             
-            // Limpa o Storage
             localStorage.removeItem('chicoPostText');
             localStorage.removeItem('chicoPostSize');
             localStorage.removeItem('chicoPostAlign');
@@ -1152,7 +1129,6 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
             saveDraft();
         });
 
-        // Inicializar
         if (!localStorage.getItem('chicoPostText')) {
             textInput.value = DEFAULT_TEXT;
         }
