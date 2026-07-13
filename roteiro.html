@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assistente - Gemini</title>
+    <title>Assistente - Gem Personalizado</title>
     <style>
         :root {
             --primary: #0a84ff;
@@ -55,6 +55,7 @@
             padding: 12px 16px;
             border-radius: 12px;
             max-width: 85%;
+            word-wrap: break-word;
         }
         .message.user {
             background: var(--primary);
@@ -178,50 +179,91 @@
 
 <script>
     // ============================================
-    // CONFIGURAÇÃO DA API
+    // CONFIGURAÇÃO DA API - CORRIGIDA
     // ============================================
     const API_KEY = 'AQ.Ab8RN6JMivzrQdPXzseQCn6RlOIdTuFFU52pdBpcAvJrnqwWQw'; // 🔑 SUBSTITUA PELA SUA CHAVE
-    const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
+    
+    // ✅ MODELOS VÁLIDOS (escolha um):
+    // - gemini-1.5-flash (mais rápido, RECOMENDADO)
+    // - gemini-1.5-pro (mais poderoso)
+    // - gemini-2.0-flash (versão mais recente estável)
+    const MODELO = 'gemini-1.5-flash'; // ← ALTERE AQUI SE QUISER
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODELO}:generateContent`;
 
     // ============================================
-    // INSTRUÇÕES DO SEU GEM (personalize aqui)
+    // INSTRUÇÕES DO SEU GEM (CULTOS E CURAS)
     // ============================================
     const GEM_CONTEXT = `
     Você é um Diretor de Fotografia e Produtor Audiovisual Especialista na cobertura de eventos cristãos, corporativos e sociais. Seu objetivo é ajudar o usuário a transformar ideias e descrições de eventos em um "Roteiro de Filmagens" técnico, prático e inspirador para a equipe de vídeo e fotografia.
 
+
+
 Sempre que o usuário fornecer informações sobre um evento, você deve gerar uma Tabela Estruturada de Captação e orientações de direção. 
+
+
 
 # REGRAS E ESTRUTURA DO ROTEIRO
 
+
+
 Você deverá sempre estruturar sua resposta no seguinte formato, usando formatação em Markdown (Tabelas e Títulos):
 
+
+
 ## CABEÇALHO DO PROJETO
+
 * **ROTEIRO DE FILMAGENS**
+
 * **Evento:** [Nome do Evento]
+
 * **Local:** [Local]
+
 * **Data da Captação:** [Data]
+
 * **Objetivo Geral:** [Crie um objetivo geral inspirador de 2 linhas focado no que o vídeo final deve transmitir. Ex: Registrar de forma dinâmica e inspiradora...]
 
+
+
 ## TABELA DE CAPTAÇÃO
+
 Gere uma tabela com as seguintes colunas e preencha com as cenas do evento (de 5 a 15 cenas, dependendo da descrição do usuário):
 
+
+
 | CENA | CONTEÚDO | SUGESTÃO DE IMAGEM / REFERÊNCIA | ENQUADRAMENTOS / MOVIMENTOS | OBJETIVO |
+
 | :--- | :--- | :--- | :--- | :--- |
+
 | [Número] | [Título da cena. Ex: CREDENCIAMENTO] | [Descreva o que a câmera deve focar visualmente] | [Sugira 3 itens técnicos. Ex: Plano Médio, Close, Travelling] | [Por que filmar isso? Ex: Mostrar organização] |
+
+
 
 *Nota técnica para a tabela:* Em "Enquadramentos / Movimentos", utilize termos técnicos reais de filmagem como: Plano Geral, Plano Médio, Plano Americano, Close (nos detalhes, no rosto, nas mãos), Travelling, Câmera na mão, Movimentos Suaves, Drone, etc.
 
+
+
 ## ORIENTAÇÕES GERAIS E DICA FINAL
+
 Finalize o documento gerando estas duas seções:
 
+
+
 * **📸 ORIENTAÇÕES GERAIS:** 
+
 Gere 4 *bullet points* com orientações técnicas para a equipe (iluminação, áudio, postura, prioridade de imagens). Ex: "Priorizar imagens que transmitam unidade e reverência...", "Captar áudio ambiente com qualidade...".
 
+
+
 * **🎬 DICA FINAL (STORYTELLING):**
+
 Uma frase forte para inspirar o videomaker sobre a história visual que ele deve contar na edição.
 
+
+
 # FLUXO DE CONVERSA
+
 1. Se o usuário fornecer apenas uma ideia básica (Ex: "Vou gravar um culto de jovens"), gere um Roteiro de Filmagem sugerido e completo, deduzindo os momentos principais (chegada, louvor, palavra, oração).
+
 2. Se o usuário listar palestrantes ou cantores específicos, inclua linhas dedicadas a eles na tabela com orientações de ângulos para captar a emoção e linguagem corporal deles.
     `;
 
@@ -304,12 +346,9 @@ Uma frase forte para inspirar o videomaker sobre a história visual que ele deve
     }
 
     // ============================================
-    // CARREGAR CONTEÚDO DO GEM NA INICIALIZAÇÃO
+    // CARREGAR INTRODUÇÃO PERSONALIZADA
     // ============================================
     async function carregarGemInicial() {
-        // Você pode opcionalmente fazer uma requisição inicial para buscar
-        // informações específicas do Gem ao carregar a página
-        // Exemplo: buscar um resumo ou boas-vindas personalizada
         const chatBox = document.getElementById('chatBox');
         const msg = document.createElement('div');
         msg.className = 'message ai';
@@ -317,7 +356,6 @@ Uma frase forte para inspirar o videomaker sobre a história visual que ele deve
         chatBox.appendChild(msg);
 
         try {
-            // Exemplo: Pergunta inicial para contextualizar
             const response = await fetch(`${API_URL}?key=${API_KEY}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -325,7 +363,7 @@ Uma frase forte para inspirar o videomaker sobre a história visual que ele deve
                     contents: [
                         {
                             parts: [
-                                { text: GEM_CONTEXT + '\n\nFaça uma introdução curta e amigável sobre você e como pode ajudar o usuário.' }
+                                { text: GEM_CONTEXT + '\n\nFaça uma introdução curta e acolhedora sobre você e como pode ajudar no contexto de cultos e curas.' }
                             ]
                         }
                     ]
@@ -336,12 +374,12 @@ Uma frase forte para inspirar o videomaker sobre a história visual que ele deve
                 const data = await response.json();
                 const resposta = data.candidates?.[0]?.content?.parts?.[0]?.text;
                 if (resposta) {
-                    msg.textContent = '👋 ' + resposta;
+                    msg.textContent = '🙏 ' + resposta;
                 }
             }
         } catch (error) {
             console.warn('Erro ao carregar introdução:', error);
-            msg.textContent = '👋 Olá! Eu sou o assistente baseado no seu Gem. Como posso ajudar você hoje?';
+            msg.textContent = '🙏 Olá! Sou seu assistente para cultos de curas. Como posso ajudar sua ministração hoje?';
         }
     }
 
