@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Transcrição iOS 26 · Real</title>
+  <title>Transcrição iOS 26 · Vídeo para Áudio</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     * {
@@ -166,10 +166,12 @@
       border-radius: 40px;
       border: 0.3px solid rgba(255, 255, 255, 0.08);
       z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .status-text i {
-      margin-right: 8px;
       color: #0a84ff;
     }
 
@@ -268,6 +270,11 @@
       100% { opacity: 1; transform: translateY(0); }
     }
 
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
     @media (max-width: 540px) {
       .ios-card {
         padding: 20px 16px;
@@ -279,6 +286,10 @@
       .transcription-item {
         flex-wrap: wrap;
         gap: 6px;
+      }
+      .transcription-item .character {
+        min-width: 60px;
+        font-size: 13px;
       }
     }
 
@@ -303,6 +314,23 @@
       right: auto;
       background: radial-gradient(circle, rgba(255, 255, 255, 0.02) 0%, transparent 70%);
     }
+
+    .progress-bar {
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .progress-bar .fill {
+      height: 100%;
+      background: linear-gradient(90deg, #0a84ff, #30d158);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
   </style>
 </head>
 <body>
@@ -319,16 +347,16 @@
 
   <div class="upload-area" id="dropArea">
     <i class="fas fa-cloud-upload-alt"></i>
-    <p><strong>Envie áudio ou vídeo</strong></p>
-    <p class="formats">MP3, WAV, M4A, MP4, MOV · transcrição real com Web Speech API</p>
+    <p><strong>Envie vídeo ou áudio</strong></p>
+    <p class="formats">MP4, MOV, AVI, MKV, MP3, WAV, M4A · extração automática de áudio</p>
     <button class="btn-upload" id="uploadBtn"><i class="fas fa-plus-circle"></i> Escolher arquivo</button>
-    <input type="file" id="fileInput" accept="audio/*,video/*">
+    <input type="file" id="fileInput" accept="video/*,audio/*">
   </div>
 
   <div class="particles-wrapper">
     <canvas id="particleCanvas"></canvas>
     <div class="status-text" id="statusText">
-      <i class="fas fa-circle" style="color:#0a84ff; font-size: 10px;"></i> pronto para transcrição
+      <i class="fas fa-circle" style="font-size: 10px;"></i> pronto para transcrição
     </div>
   </div>
 
@@ -336,15 +364,18 @@
     <div class="empty-message" id="emptyMessage">
       <i class="fas fa-wave-square"></i>
       <span>Nenhuma transcrição ainda</span>
-      <p style="font-size:13px; margin-top:8px;">envie um arquivo para começar</p>
+      <p style="font-size:13px; margin-top:8px; color:rgba(255,255,255,0.3);">
+        envie um vídeo ou áudio para começar
+      </p>
     </div>
     <div id="transcriptionList"></div>
   </div>
 
-  <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+  <div style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 16px;">
     <span style="color: rgba(255,255,255,0.15); font-size: 12px;">
       <i class="fas fa-lock" style="margin-right: 4px;"></i> processamento local
     </span>
+    <span style="color: rgba(255,255,255,0.1); font-size: 12px;" id="fileInfo"></span>
   </div>
 </div>
 
@@ -451,13 +482,14 @@
       isProcessing = active;
     }
 
-    // ----- TRANSCRIÇÃO REAL COM WEB SPEECH API -----
+    // ----- EXTRAÇÃO DE ÁUDIO E TRANSCRIÇÃO -----
     const fileInput = document.getElementById('fileInput');
     const uploadBtn = document.getElementById('uploadBtn');
     const dropArea = document.getElementById('dropArea');
     const statusText = document.getElementById('statusText');
     const transcriptionList = document.getElementById('transcriptionList');
     const emptyMessage = document.getElementById('emptyMessage');
+    const fileInfo = document.getElementById('fileInfo');
 
     let recognition = null;
     let isTranscribing = false;
@@ -468,7 +500,7 @@
     // Inicializa reconhecimento de fala
     function initSpeechRecognition() {
       if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> Web Speech API não suportada`;
+        statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> API não suportada`;
         return null;
       }
 
@@ -482,9 +514,84 @@
       return recognition;
     }
 
-    // Processa arquivo de áudio/vídeo
+    // Extrai áudio do vídeo usando Web Audio API
+    function extractAudioFromVideo(videoElement) {
+      return new Promise((resolve, reject) => {
+        try {
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const source = audioContext.createMediaElementSource(videoElement);
+          const destination = audioContext.createMediaStreamDestination();
+          
+          source.connect(destination);
+          source.connect(audioContext.destination);
+          
+          const mediaRecorder = new MediaRecorder(destination.stream, {
+            mimeType: 'audio/webm;codecs=opus'
+          });
+
+          const audioChunks = [];
+
+          mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+              audioChunks.push(event.data);
+            }
+          };
+
+          mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            resolve(audioBlob);
+          };
+
+          mediaRecorder.onerror = (error) => {
+            reject(error);
+          };
+
+          // Inicia gravação
+          mediaRecorder.start(1000);
+
+          // Toca o vídeo para extrair o áudio
+          videoElement.play().then(() => {
+            // Quando o vídeo terminar, para a gravação
+            videoElement.onended = () => {
+              if (mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+              }
+            };
+
+            // Fallback: para após a duração do vídeo
+            const duration = videoElement.duration * 1000;
+            setTimeout(() => {
+              if (mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+              }
+            }, duration + 1000);
+
+          }).catch(reject);
+
+          // Se o vídeo já terminou, força o stop
+          if (videoElement.ended) {
+            if (mediaRecorder.state === 'recording') {
+              mediaRecorder.stop();
+            }
+          }
+
+        } catch (error) {
+          reject(error);
+        }
+      });
+    }
+
+    // Processa o arquivo enviado
     function processFile(file) {
-      // Verifica se é vídeo ou áudio
+      // Limpa transcrições anteriores
+      transcriptionList.innerHTML = '';
+      emptyMessage.style.display = 'none';
+      transcriptParts = [];
+      segmentCounter = 0;
+      
+      // Mostra info do arquivo
+      fileInfo.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+
       const isVideo = file.type.startsWith('video/');
       const isAudio = file.type.startsWith('audio/');
 
@@ -493,154 +600,264 @@
         return;
       }
 
-      // Cria URL para o arquivo
       const url = URL.createObjectURL(file);
       
-      // Cria elemento de áudio/vídeo para extrair áudio
       let mediaElement;
       if (isVideo) {
         mediaElement = document.createElement('video');
         mediaElement.muted = true;
         mediaElement.playsInline = true;
+        mediaElement.controls = false;
       } else {
         mediaElement = document.createElement('audio');
+        mediaElement.controls = false;
       }
       
       mediaElement.src = url;
-      mediaElement.controls = false;
       mediaElement.style.display = 'none';
       document.body.appendChild(mediaElement);
 
-      // Limpa transcrições anteriores
-      transcriptionList.innerHTML = '';
-      emptyMessage.style.display = 'none';
-      transcriptParts = [];
-      segmentCounter = 0;
-
       // Ativa processamento
       setProcessingState(true);
-      statusText.innerHTML = `<i class="fas fa-spinner fa-pulse" style="color:#0a84ff;"></i> carregando áudio...`;
+      statusText.innerHTML = `<i class="fas fa-spinner fa-pulse"></i> extraindo áudio...`;
 
-      // Carrega o áudio
+      // Carrega o elemento
       mediaElement.addEventListener('loadedmetadata', function() {
-        startTime = Date.now();
-        
-        // Verifica se tem áudio
-        if (mediaElement.duration === 0 || mediaElement.duration === Infinity) {
-          statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> arquivo sem áudio detectado`;
+        const duration = mediaElement.duration;
+        if (duration === 0 || duration === Infinity) {
+          statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> arquivo sem áudio/vídeo válido`;
           setProcessingState(false);
           document.body.removeChild(mediaElement);
           return;
         }
 
-        statusText.innerHTML = `<i class="fas fa-microphone" style="color:#0a84ff;"></i> transcrevendo... (${Math.round(mediaElement.duration)}s)`;
-
-        // Inicia a reprodução e captura
-        mediaElement.play().then(() => {
-          // Inicializa Web Speech API para capturar áudio do sistema
-          if (!recognition) {
-            recognition = initSpeechRecognition();
-            if (!recognition) {
-              statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> API de fala não disponível`;
-              setProcessingState(false);
-              document.body.removeChild(mediaElement);
-              return;
-            }
-          }
-
-          // Configura eventos do recognition
-          recognition.onresult = function(event) {
-            let finalTranscript = '';
-            let interimTranscript = '';
+        // Para vídeos, extrai o áudio
+        if (isVideo) {
+          statusText.innerHTML = `<i class="fas fa-wave-square"></i> extraindo áudio do vídeo...`;
+          
+          extractAudioFromVideo(mediaElement).then(audioBlob => {
+            // Áudio extraído com sucesso
+            statusText.innerHTML = `<i class="fas fa-check-circle" style="color:#30d158;"></i> áudio extraído! iniciando transcrição...`;
             
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-              const transcript = event.results[i][0].transcript;
-              if (event.results[i].isFinal) {
-                finalTranscript += transcript;
-              } else {
-                interimTranscript += transcript;
-              }
-            }
-
-            if (finalTranscript) {
-              const currentTime = (Date.now() - startTime) / 1000;
-              const minutes = Math.floor(currentTime / 60);
-              const seconds = Math.floor(currentTime % 60);
-              const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-              
-              // Adiciona segmento de transcrição
-              addTranscriptionSegment('Falante', timeStr, finalTranscript.trim());
-              transcriptParts.push({ time: timeStr, text: finalTranscript.trim() });
-            }
-          };
-
-          recognition.onerror = function(event) {
-            console.error('Erro no reconhecimento:', event.error);
-            if (event.error === 'not-allowed') {
-              statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> permissão de microfone negada`;
-            }
-          };
-
-          recognition.onend = function() {
-            // Quando termina, finaliza
-            if (mediaElement && !mediaElement.paused) {
-              // Se o áudio ainda estiver tocando, tenta reiniciar
-              try {
-                recognition.start();
-              } catch (e) {
-                console.log('Recognition já iniciado');
-              }
-            } else {
-              finalizeTranscription();
-            }
-          };
-
-          // Inicia reconhecimento
-          try {
-            recognition.start();
-          } catch (e) {
-            console.log('Recognition já iniciado');
-          }
-
-          // Monitora fim do áudio
-          mediaElement.addEventListener('ended', function() {
-            if (recognition) {
-              try {
-                recognition.stop();
-              } catch (e) {}
-            }
-            finalizeTranscription();
+            // Agora transcreve o áudio extraído
+            transcribeAudioBlob(audioBlob, file.name);
+            
+          }).catch(error => {
+            console.error('Erro na extração:', error);
+            statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> erro ao extrair áudio`;
+            setProcessingState(false);
+            document.body.removeChild(mediaElement);
           });
-
-          // Atualiza status periodicamente
-          const statusInterval = setInterval(() => {
-            if (mediaElement && !mediaElement.paused) {
-              const currentTime = Math.round(mediaElement.currentTime);
-              const duration = Math.round(mediaElement.duration);
-              statusText.innerHTML = `<i class="fas fa-microphone" style="color:#0a84ff;"></i> transcrevendo... ${currentTime}/${duration}s`;
-            }
-          }, 1000);
-
-          // Armazena intervalo para limpar depois
-          mediaElement._statusInterval = statusInterval;
-
-        }).catch(error => {
-          console.error('Erro ao reproduzir:', error);
-          statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> erro ao processar áudio`;
-          setProcessingState(false);
-          document.body.removeChild(mediaElement);
-        });
+          
+        } else {
+          // É áudio, vai direto para transcrição
+          statusText.innerHTML = `<i class="fas fa-microphone"></i> preparando transcrição...`;
+          // Converte o arquivo de áudio para Blob
+          const audioBlob = file;
+          transcribeAudioBlob(audioBlob, file.name);
+        }
 
       }, { once: true });
 
-      // Fallback se não carregar
+      // Fallback
       setTimeout(() => {
-        if (mediaElement && mediaElement.readyState < 2) {
-          statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> erro no carregamento do áudio`;
+        if (mediaElement.readyState < 2) {
+          statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> erro no carregamento`;
           setProcessingState(false);
           if (mediaElement.parentNode) document.body.removeChild(mediaElement);
         }
       }, 5000);
+    }
+
+    // Transcreve um blob de áudio
+    function transcribeAudioBlob(audioBlob, originalFileName) {
+      // Cria URL para o blob
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      // Cria elemento de áudio para reprodução
+      const audioElement = document.createElement('audio');
+      audioElement.src = audioUrl;
+      audioElement.controls = false;
+      audioElement.style.display = 'none';
+      document.body.appendChild(audioElement);
+
+      // Prepara para transcrição
+      if (!recognition) {
+        recognition = initSpeechRecognition();
+        if (!recognition) {
+          statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> API de fala não disponível`;
+          setProcessingState(false);
+          document.body.removeChild(audioElement);
+          return;
+        }
+      }
+
+      // Limpa reconhecimento anterior
+      try {
+        recognition.stop();
+      } catch (e) {}
+
+      // Configura reconhecimento
+      let finalTranscripts = [];
+      let isRecognizing = false;
+      let lastResultTime = Date.now();
+
+      recognition.onresult = function(event) {
+        let finalTranscript = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          }
+        }
+
+        if (finalTranscript) {
+          const currentTime = audioElement.currentTime;
+          const minutes = Math.floor(currentTime / 60);
+          const seconds = Math.floor(currentTime % 60);
+          const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+          
+          // Detecta se é um novo segmento
+          const lastSegment = transcriptParts[transcriptParts.length - 1];
+          if (lastSegment && lastSegment.text === finalTranscript.trim()) {
+            return; // Evita duplicatas
+          }
+
+          // Adiciona segmento
+          const character = detectSpeaker(finalTranscript);
+          addTranscriptionSegment(character, timeStr, finalTranscript.trim());
+          transcriptParts.push({ time: timeStr, text: finalTranscript.trim(), character });
+          lastResultTime = Date.now();
+        }
+      };
+
+      recognition.onerror = function(event) {
+        console.error('Erro no reconhecimento:', event.error);
+        if (event.error === 'no-speech') {
+          // Não é um erro crítico, apenas continua
+        } else if (event.error === 'not-allowed') {
+          statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> permissão de microfone negada`;
+        }
+      };
+
+      recognition.onend = function() {
+        // Se o áudio ainda estiver tocando, reinicia
+        if (!audioElement.paused && !audioElement.ended) {
+          try {
+            recognition.start();
+          } catch (e) {
+            console.log('Reiniciando reconhecimento...');
+            setTimeout(() => {
+              if (!audioElement.paused && !audioElement.ended) {
+                try { recognition.start(); } catch (e) {}
+              }
+            }, 500);
+          }
+        } else {
+          // Finaliza transcrição
+          finalizeTranscription(originalFileName);
+        }
+      };
+
+      // Carrega o áudio e inicia a reprodução
+      audioElement.addEventListener('loadedmetadata', function() {
+        startTime = Date.now();
+        const duration = Math.round(audioElement.duration);
+        statusText.innerHTML = `<i class="fas fa-microphone"></i> transcrevendo... 0/${duration}s`;
+        
+        // Inicia reprodução
+        audioElement.play().then(() => {
+          // Inicia reconhecimento
+          try {
+            recognition.start();
+            isRecognizing = true;
+          } catch (e) {
+            console.log('Erro ao iniciar recognition:', e);
+          }
+
+          // Atualiza progresso
+          const progressInterval = setInterval(() => {
+            if (!audioElement.paused) {
+              const current = Math.round(audioElement.currentTime);
+              const total = Math.round(audioElement.duration);
+              statusText.innerHTML = `<i class="fas fa-microphone"></i> transcrevendo... ${current}/${total}s`;
+              
+              // Atualiza barra de progresso
+              const progress = (current / total) * 100;
+              const progressBar = document.querySelector('.progress-bar .fill');
+              if (progressBar) {
+                progressBar.style.width = `${progress}%`;
+              }
+            }
+          }, 500);
+
+          // Armazena intervalo para limpar depois
+          audioElement._progressInterval = progressInterval;
+
+        }).catch(error => {
+          console.error('Erro ao reproduzir:', error);
+          statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> erro ao reproduzir áudio`;
+          setProcessingState(false);
+        });
+
+      }, { once: true });
+
+      // Quando o áudio terminar
+      audioElement.addEventListener('ended', function() {
+        if (recognition && isRecognizing) {
+          try {
+            recognition.stop();
+          } catch (e) {}
+        }
+        if (audioElement._progressInterval) {
+          clearInterval(audioElement._progressInterval);
+        }
+        finalizeTranscription(originalFileName);
+      });
+
+      // Fallback
+      setTimeout(() => {
+        if (audioElement.readyState < 2) {
+          statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> erro no carregamento do áudio`;
+          setProcessingState(false);
+          if (audioElement.parentNode) document.body.removeChild(audioElement);
+        }
+      }, 5000);
+    }
+
+    // Detecta personagem baseado no texto
+    function detectSpeaker(text) {
+      const speakers = [
+        { name: 'Apresentador', keywords: ['bem-vindo', 'olá', 'oi', 'vamos', 'começar'] },
+        { name: 'Especialista', keywords: ['técnico', 'sistema', 'análise', 'dados', 'pesquisa'] },
+        { name: 'Convidado', keywords: ['obrigado', 'interessante', 'pergunta', 'acredito'] },
+        { name: 'Narrador', keywords: ['então', 'assim', 'agora', 'depois', 'finalmente'] }
+      ];
+
+      const lowerText = text.toLowerCase();
+      let bestMatch = { name: 'Falante', score: 0 };
+
+      for (const speaker of speakers) {
+        let score = 0;
+        for (const keyword of speaker.keywords) {
+          if (lowerText.includes(keyword)) {
+            score++;
+          }
+        }
+        if (score > bestMatch.score) {
+          bestMatch = { name: speaker.name, score: score };
+        }
+      }
+
+      // Se não encontrou nenhum, tenta identificar por padrões
+      if (bestMatch.score === 0) {
+        if (text.length > 30) {
+          return 'Narrador';
+        }
+        return 'Falante';
+      }
+
+      return bestMatch.name;
     }
 
     function addTranscriptionSegment(character, time, text) {
@@ -652,20 +869,39 @@
         <span class="text">${text}</span>
       `;
       transcriptionList.appendChild(div);
-      // Scroll para o final
+      
       const box = document.getElementById('transcriptionBox');
       box.scrollTop = box.scrollHeight;
     }
 
-    function finalizeTranscription() {
+    function finalizeTranscription(originalFileName) {
       setProcessingState(false);
-      statusText.innerHTML = `<i class="fas fa-check-circle" style="color:#30d158;"></i> transcrição concluída`;
       
-      // Remove elemento de mídia
+      // Cria barra de progresso se não existir
+      if (!document.querySelector('.progress-bar')) {
+        const progressBar = document.createElement('div');
+        progressBar.className = 'progress-bar';
+        progressBar.innerHTML = '<div class="fill" style="width: 100%;"></div>';
+        document.querySelector('.particles-wrapper').appendChild(progressBar);
+      }
+      
+      const progressBar = document.querySelector('.progress-bar .fill');
+      if (progressBar) {
+        progressBar.style.width = '100%';
+        setTimeout(() => {
+          if (progressBar.parentNode) {
+            progressBar.parentNode.style.opacity = '0.3';
+          }
+        }, 1000);
+      }
+
+      statusText.innerHTML = `<i class="fas fa-check-circle" style="color:#30d158;"></i> transcrição concluída`;
+
+      // Remove elementos de mídia
       const mediaElements = document.querySelectorAll('audio, video');
       mediaElements.forEach(el => {
-        if (el._statusInterval) clearInterval(el._statusInterval);
-        if (el.parentNode) el.parentNode.removeChild(el);
+        if (el._progressInterval) clearInterval(el._progressInterval);
+        if (el.parentNode) document.body.removeChild(el);
         URL.revokeObjectURL(el.src);
       });
 
@@ -675,19 +911,38 @@
           <i class="fas fa-exclamation-circle"></i>
           <span>Nenhuma fala detectada</span>
           <p style="font-size:13px; margin-top:8px; color:rgba(255,255,255,0.3);">
-            Verifique se o arquivo contém áudio com fala
+            Verifique se o áudio contém fala em português
           </p>
         `;
+      } else {
+        // Adiciona resumo
+        const summary = document.createElement('div');
+        summary.style.cssText = `
+          margin-top: 16px;
+          padding-top: 12px;
+          border-top: 0.5px solid rgba(255,255,255,0.04);
+          color: rgba(255,255,255,0.2);
+          font-size: 12px;
+          display: flex;
+          justify-content: space-between;
+        `;
+        summary.innerHTML = `
+          <span><i class="fas fa-file-alt"></i> ${originalFileName}</span>
+          <span><i class="fas fa-comment"></i> ${transcriptParts.length} falas detectadas</span>
+        `;
+        transcriptionList.appendChild(summary);
       }
+
+      // Atualiza info
+      fileInfo.textContent = `transcrição concluída · ${transcriptParts.length} segmentos`;
     }
 
-    // Eventos de upload
+    // ----- EVENTOS DE UPLOAD -----
     uploadBtn.addEventListener('click', () => fileInput.click());
 
     fileInput.addEventListener('change', (e) => {
       if (fileInput.files.length > 0) {
-        const file = fileInput.files[0];
-        processFile(file);
+        processFile(fileInput.files[0]);
       }
       fileInput.value = '';
     });
@@ -714,7 +969,7 @@
       }
     });
 
-    // Verifica suporte à API
+    // Verifica suporte
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       statusText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ff9f0a;"></i> API não suportada neste navegador`;
     }
@@ -724,7 +979,7 @@
       if (animationFrame) cancelAnimationFrame(animationFrame);
       const mediaElements = document.querySelectorAll('audio, video');
       mediaElements.forEach(el => {
-        if (el._statusInterval) clearInterval(el._statusInterval);
+        if (el._progressInterval) clearInterval(el._progressInterval);
         if (el.parentNode) el.parentNode.removeChild(el);
         URL.revokeObjectURL(el.src);
       });
