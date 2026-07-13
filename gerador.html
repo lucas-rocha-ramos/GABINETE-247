@@ -382,7 +382,7 @@
         }
 
         .post-content {
-            padding: 0.8rem 0.8rem 2.5rem; /* Ajustado para deixar um espaço vazio na parte de baixo */
+            padding: 0.8rem 0.8rem 2.5rem; 
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -473,7 +473,7 @@
         }
 
         .download-content {
-            padding: 45px 45px 160px 45px; /* Ajustado para deixar bastante espaço em branco na parte inferior da imagem real */
+            padding: 45px 45px 160px 45px; 
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -636,10 +636,10 @@
             <h2><i class="fas fa-pen-fancy"></i> Editar Conteúdo</h2>
 
             <div class="field">
-                <label><i class="fas fa-user-circle"></i> Perfil (perfil.png - fixo)</label>
+                <label><i class="fas fa-user-circle"></i> Perfil (/ativos/perfil.png - fixo)</label>
                 <div class="file-upload" style="border-style: solid; border-color: #1a5fb4; background: #f0f5ff;">
                     <span style="font-weight: 600; color: #1a5fb4;">
-                        <i class="fas fa-check-circle"></i> perfil.png
+                        <i class="fas fa-check-circle"></i> /ativos/perfil.png
                     </span>
                     <span style="font-size: 0.8rem; color: #5a6b7e; margin-left: auto;">
                         <i class="fas fa-info-circle"></i> Esquerda, Maior
@@ -650,7 +650,7 @@
                 </div>
                 <div id="avatarError" class="error-avatar">
                     <i class="fas fa-exclamation-triangle"></i> 
-                    <strong>perfil.png</strong> não encontrado.
+                    <strong>/ativos/perfil.png</strong> não encontrado.
                 </div>
             </div>
 
@@ -769,7 +769,7 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
                         <!-- Perfil e texto agrupados dentro de post-content -->
                         <div class="post-content" id="postContent1350">
                             <div class="post-profile">
-                                <img id="profilePreview1350" src="perfil.png" alt="Perfil" onerror="handleAvatarError()">
+                                <img id="profilePreview1350" src="/ativos/perfil.png" alt="Perfil" onerror="handleAvatarError()">
                             </div>
                             <div class="post-text" id="textPreview1350">📌 TRABALHO QUE AVANÇA</div>
                             <div class="post-materia" id="materiaPreview1350">
@@ -791,7 +791,7 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
 <div id="downloadContainer1080">
     <div class="download-content" id="downloadContent1080">
         <div class="download-profile">
-            <img id="downloadProfile1080" src="perfil.png" alt="Perfil" crossorigin="anonymous">
+            <img id="downloadProfile1080" src="/ativos/perfil.png" alt="Perfil" crossorigin="anonymous">
         </div>
         <div class="download-text" id="downloadText1080">📌 TRABALHO QUE AVANÇA</div>
         <div class="download-materia" id="downloadMateria1080">
@@ -803,7 +803,7 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
 <div id="downloadContainer1350">
     <div class="download-content" id="downloadContent1350">
         <div class="download-profile">
-            <img id="downloadProfile1350" src="perfil.png" alt="Perfil" crossorigin="anonymous">
+            <img id="downloadProfile1350" src="/ativos/perfil.png" alt="Perfil" crossorigin="anonymous">
         </div>
         <div class="download-text" id="downloadText1350">📌 TRABALHO QUE AVANÇA</div>
         <div class="download-materia" id="downloadMateria1350">
@@ -990,7 +990,7 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
             const img = new Image();
             img.onload = () => avatarError.classList.remove('show');
             img.onerror = () => avatarError.classList.add('show');
-            img.src = 'perfil.png';
+            img.src = '/ativos/perfil.png';
         }
 
         async function processImage(container, filename, action) {
@@ -1197,7 +1197,7 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
             checkProfile();
         }, 200);
 
-        console.log('Gerador com postagem no Instagram e salvamento em galeria');
+        console.log('Gerador final com caminho do perfil corrigido para /ativos/');
     })();
 </script>
 
