@@ -2,47 +2,326 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Gerador Inteligente · Gabinete 247</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assistente - Gemini</title>
     <style>
-        body { background: #000; color: #fff; padding: 2rem; font-family: sans-serif; }
-        .container { max-width: 800px; margin: auto; background: #1a1a1a; padding: 30px; border-radius: 20px; }
-        textarea { width: 100%; height: 150px; background: #222; color: #fff; border: 1px solid #444; border-radius: 12px; padding: 15px; margin: 15px 0; }
-        .btn { background: #0a84ff; color: white; padding: 15px; border-radius: 12px; border: none; width: 100%; font-weight: bold; cursor: pointer; }
+        :root {
+            --primary: #0a84ff;
+            --dark: #1a1a1a;
+            --card: #2a2a2a;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--dark);
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: var(--card);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #0a84ff, #6c5ce7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            color: #888;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .chat-box {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 85%;
+        }
+        .message.user {
+            background: var(--primary);
+            margin-left: auto;
+            color: #fff;
+        }
+        .message.ai {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #eee;
+        }
+        .message.ai .loading {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #666;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        input {
+            flex: 1;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 1px solid #444;
+            background: #1a1a1a;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(10,132,255,0.1);
+        }
+        button {
+            padding: 14px 28px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #0a84ff, #6c5ce7);
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover { transform: scale(1.02); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .info-box {
+            background: rgba(10,132,255,0.1);
+            border: 1px solid rgba(10,132,255,0.2);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #aaa;
+        }
+        .info-box strong { color: #fff; }
+        .footer {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 12px;
+            color: #555;
+        }
+        .badge {
+            display: inline-block;
+            background: rgba(10,132,255,0.15);
+            color: var(--primary);
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Roteiro Inteligente</h1>
-    <p>Descreva o evento. O Gabinete 247 enviará os detalhes para o seu Agente Gemini.</p>
-    
-    <textarea id="descricao" placeholder="Ex: Roteiro para o evento EBO 52 em Cuiabá..."></textarea>
-    
-    <!-- Este botão dispara a instrução para o seu Agente -->
-    <button class="btn" onclick="enviarParaAgente()">Enviar para o Agente Gemini</button>
+    <h1>🤖 Assistente Especializado</h1>
+    <p class="subtitle">
+        Baseado no seu Gem personalizado 
+        <span class="badge">API Gemini</span>
+    </p>
+
+    <div class="info-box">
+        <strong>💡 Sobre este assistente:</strong> 
+        Ele foi configurado com as instruções do seu Gem. Faça perguntas sobre o tema!
+    </div>
+
+    <div id="chatBox" class="chat-box">
+        <div class="message ai">
+            👋 Olá! Eu sou o assistente baseado no seu Gem. Como posso ajudar você hoje?
+        </div>
+    </div>
+
+    <div class="input-group">
+        <input 
+            type="text" 
+            id="userInput" 
+            placeholder="Digite sua pergunta..."
+            onkeydown="if(event.key === 'Enter') enviarMensagem()"
+        >
+        <button id="sendBtn" onclick="enviarMensagem()">
+            <i class="fas fa-paper-plane"></i> Enviar
+        </button>
+    </div>
+    <div class="footer">
+        <i class="fas fa-shield-alt"></i> Respostas geradas por IA · Verifique informações importantes
+    </div>
 </div>
 
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
 <script>
-    function enviarParaAgente() {
-        const descricao = document.getElementById('descricao').value;
-        if(!descricao) return alert("Descreva o evento!");
+    // ============================================
+    // CONFIGURAÇÃO DA API
+    // ============================================
+    const API_KEY = 'AIzaSyBGzhaEmxodis9tjC4wNnF6DFhVIeCva_U'; // 🔑 SUBSTITUA PELA SUA CHAVE
+    const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
 
-        // Instrução técnica para o agente
-        const promptTecnico = `Aja como meu Diretor de Fotografia. 
-        Crie um roteiro de filmagem detalhado para: ${descricao}.
-        Entregue em formato de tabela com colunas: CENA, CONTEÚDO, SUGESTÃO DE IMAGEM (com prompt detalhado para IA), MOVIMENTOS DE CÂMERA, OBJETIVO.
-        Ao final, gere as imagens solicitadas.`;
+    // ============================================
+    // INSTRUÇÕES DO SEU GEM (personalize aqui)
+    // ============================================
+    const GEM_CONTEXT = `
+    Você é um assistente especializado em [INSIRA AQUI O TEMA DO SEU GEM].
+    Seu conhecimento é baseado nas seguintes diretrizes:
+    - [Diretriz 1]
+    - [Diretriz 2]
+    - [Diretriz 3]
+    
+    Responda de forma clara, objetiva e com exemplos práticos quando possível.
+    Se não souber algo, diga honestamente que não sabe.
+    `;
 
-        // Aqui está o "pulo do gato": 
-        // Se o seu Agente Gemini estiver em uma URL específica, nós o abrimos 
-        // ou enviamos a mensagem via postMessage se o iframe for seu.
-        
-        // Exemplo: abrindo o agente numa nova aba com o prompt pronto (substitua pela sua URL)
-        const urlAgente = "https://aistudio.google.com/app/prompts/new_chat"; // Ou seu agente customizado
-        window.open(urlAgente, '_blank');
-        
-        alert("Instrução técnica montada! Cole o texto abaixo no seu Agente:\n\n" + promptTecnico);
+    // ============================================
+    // FUNÇÃO PARA ENVIAR MENSAGEM
+    // ============================================
+    async function enviarMensagem() {
+        const input = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatBox = document.getElementById('chatBox');
+        const mensagem = input.value.trim();
+
+        if (!mensagem) return;
+
+        // Mostrar mensagem do usuário
+        adicionarMensagem('user', mensagem);
+        input.value = '';
+        sendBtn.disabled = true;
+        input.disabled = true;
+
+        // Mostrar indicador de loading
+        const loadingMsg = adicionarMensagem('ai', '⏳ Pensando...', true);
+
+        try {
+            const response = await fetch(`${API_URL}?key=${API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [
+                        {
+                            parts: [
+                                { text: GEM_CONTEXT + '\n\nPergunta do usuário: ' + mensagem }
+                            ]
+                        }
+                    ]
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || 'Erro ao chamar API');
+            }
+
+            const data = await response.json();
+            const resposta = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Desculpe, não entendi. Tente outra pergunta.';
+
+            // Remover loading e adicionar resposta
+            if (loadingMsg) loadingMsg.remove();
+            adicionarMensagem('ai', resposta);
+
+        } catch (error) {
+            console.error('Erro:', error);
+            if (loadingMsg) loadingMsg.remove();
+            adicionarMensagem('ai', `❌ Erro: ${error.message}. Verifique sua chave API.`);
+        }
+
+        sendBtn.disabled = false;
+        input.disabled = false;
+        input.focus();
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
+
+    // ============================================
+    // FUNÇÃO PARA ADICIONAR MENSAGEM NO CHAT
+    // ============================================
+    function adicionarMensagem(tipo, texto, isLoading = false) {
+        const chatBox = document.getElementById('chatBox');
+        const div = document.createElement('div');
+        div.className = `message ${tipo}`;
+        
+        if (isLoading) {
+            div.innerHTML = `<span class="loading"></span><span class="loading"></span><span class="loading"></span>`;
+        } else {
+            div.textContent = texto;
+        }
+        
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        return div;
+    }
+
+    // ============================================
+    // CARREGAR CONTEÚDO DO GEM NA INICIALIZAÇÃO
+    // ============================================
+    async function carregarGemInicial() {
+        // Você pode opcionalmente fazer uma requisição inicial para buscar
+        // informações específicas do Gem ao carregar a página
+        // Exemplo: buscar um resumo ou boas-vindas personalizada
+        const chatBox = document.getElementById('chatBox');
+        const msg = document.createElement('div');
+        msg.className = 'message ai';
+        msg.textContent = '📚 Carregando conhecimento do Gem...';
+        chatBox.appendChild(msg);
+
+        try {
+            // Exemplo: Pergunta inicial para contextualizar
+            const response = await fetch(`${API_URL}?key=${API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [
+                        {
+                            parts: [
+                                { text: GEM_CONTEXT + '\n\nFaça uma introdução curta e amigável sobre você e como pode ajudar o usuário.' }
+                            ]
+                        }
+                    ]
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const resposta = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (resposta) {
+                    msg.textContent = '👋 ' + resposta;
+                }
+            }
+        } catch (error) {
+            console.warn('Erro ao carregar introdução:', error);
+            msg.textContent = '👋 Olá! Eu sou o assistente baseado no seu Gem. Como posso ajudar você hoje?';
+        }
+    }
+
+    // Inicializar ao carregar a página
+    document.addEventListener('DOMContentLoaded', () => {
+        carregarGemInicial();
+    });
 </script>
+
 </body>
 </html>
