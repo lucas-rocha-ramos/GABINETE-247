@@ -1,529 +1,182 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>GABINETE 247 · Ecossistema</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GABINETE 247</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        :root {
+            --bg-color: #f5f5f7;
+            --sidebar-bg: rgba(255, 255, 255, 0.8);
+            --text-main: #1d1d1f;
+            --text-muted: #86868b;
+            --accent: #0066cc;
+            --accent-hover: #e8f0fe;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
         body {
-            background: #0b1622;
-            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
             height: 100vh;
             overflow: hidden;
+            color: var(--text-main);
+        }
+
+        /* Menu Lateral Estilo MacOS */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
+            padding: 2rem 1rem;
+            z-index: 10;
         }
 
-        /* ===== TOP BAR ===== */
-        .topbar {
-            background: #111e2e;
-            padding: 0.6rem 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-shrink: 0;
-            border-bottom: 2px solid #1a5fb4;
-            flex-wrap: wrap;
-            gap: 0.5rem 1rem;
-        }
-
-        .topbar .brand {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            color: white;
-            font-weight: 700;
+        .brand {
             font-size: 1.2rem;
-            letter-spacing: 0.5px;
-        }
-
-        .topbar .brand i {
-            color: #ffc107;
-            font-size: 1.3rem;
-        }
-
-        .topbar .brand span {
-            color: #8ab4f8;
-        }
-
-        .topbar .version {
-            color: #5a7a9a;
-            font-size: 0.7rem;
-            background: #1a2a3a;
-            padding: 0.2rem 0.8rem;
-            border-radius: 2rem;
-        }
-
-        /* ===== TAB BAR ===== */
-        .tab-bar {
-            background: #0f1a2a;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 2.5rem;
+            padding: 0 1rem;
             display: flex;
             align-items: center;
-            gap: 0.2rem;
-            padding: 0.4rem 1.5rem 0;
-            flex-shrink: 0;
-            overflow-x: auto;
-            border-bottom: 1px solid #1a2a3a;
-            flex-wrap: nowrap;
+            gap: 0.8rem;
         }
 
-        .tab-bar::-webkit-scrollbar {
-            height: 3px;
+        .brand i {
+            color: var(--accent);
+            font-size: 1.4rem;
         }
 
-        .tab-bar::-webkit-scrollbar-thumb {
-            background: #1a5fb4;
-            border-radius: 10px;
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            list-style: none;
         }
 
-        .tab-btn {
-            background: transparent;
-            border: none;
-            color: #6a8aaa;
-            padding: 0.6rem 1.2rem;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 8px 8px 0 0;
-            transition: 0.2s;
+        .nav-item {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            white-space: nowrap;
-            border-bottom: 3px solid transparent;
-            font-family: inherit;
-        }
-
-        .tab-btn:hover:not([disabled]) {
-            color: #b0ccee;
-            background: #1a2a3a;
-        }
-
-        .tab-btn.active {
-            color: #ffffff;
-            background: #162232;
-            border-bottom-color: #1a5fb4;
-        }
-
-        .tab-btn[disabled] {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        .tab-btn i {
-            font-size: 0.9rem;
-        }
-
-        .tab-btn .badge-tab {
-            background: #1a5fb4;
-            color: white;
-            font-size: 0.6rem;
-            padding: 0.1rem 0.5rem;
-            border-radius: 2rem;
-            margin-left: 0.2rem;
-        }
-
-        .tab-btn .badge-tab.soon {
-            background: #5a6a7a;
-            font-size: 0.5rem;
-            text-transform: uppercase;
-        }
-
-        /* ===== TAB CONTENT ===== */
-        .tab-content-wrapper {
-            flex: 1;
-            background: #0b1622;
+            gap: 1rem;
+            padding: 0.8rem 1rem;
+            border-radius: 0.8rem;
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            white-space: nowrap; /* Impede que o texto quebre de linha */
             overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nav-item i {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            transition: color 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(0,0,0,0.03);
+        }
+
+        .nav-item.active {
+            background-color: var(--accent-hover);
+            color: var(--accent);
+        }
+
+        .nav-item.active i {
+            color: var(--accent);
+        }
+
+        /* Área de Conteúdo (iFrame) */
+        .content-area {
+            flex: 1;
+            height: 100%;
             position: relative;
         }
 
-        .tab-pane {
-            display: none;
-            width: 100%;
-            height: 100%;
-            background: #e8ecf1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 0;
-        }
-
-        .tab-pane.active {
-            display: block;
-        }
-
-        .tab-pane iframe {
+        iframe {
             width: 100%;
             height: 100%;
             border: none;
-            background: #e8ecf1;
+            background: var(--bg-color);
         }
 
-        /* ===== BEM-VINDO ===== */
-        .welcome-pane {
-            background: #0b1622;
-            color: #d0dcec;
-            padding: 2.5rem 2rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100%;
-            text-align: center;
-        }
-
-        .welcome-pane .logo-large {
-            font-size: 4rem;
-            color: #ffc107;
-            margin-bottom: 0.5rem;
-        }
-
-        .welcome-pane h2 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 0.5rem;
-        }
-
-        .welcome-pane h2 span {
-            color: #1a5fb4;
-        }
-
-        .welcome-pane .subtitle {
-            font-size: 1.1rem;
-            color: #8ab4f8;
-            margin-bottom: 2rem;
-        }
-
-        .welcome-pane .grid-features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            max-width: 800px;
-            width: 100%;
-            margin: 1.5rem 0;
-        }
-
-        .welcome-pane .feature-card {
-            background: #162232;
-            padding: 1.5rem 1rem;
-            border-radius: 1.2rem;
-            border: 1px solid #1a2a3a;
-            transition: 0.3s;
-        }
-
-        .welcome-pane .feature-card:hover {
-            border-color: #1a5fb4;
-            transform: translateY(-3px);
-        }
-
-        .welcome-pane .feature-card i {
-            font-size: 2rem;
-            color: #1a5fb4;
-            margin-bottom: 0.6rem;
-        }
-
-        .welcome-pane .feature-card h4 {
-            color: #ffffff;
-            font-size: 1rem;
-            margin-bottom: 0.3rem;
-        }
-
-        .welcome-pane .feature-card p {
-            color: #7a8aaa;
-            font-size: 0.85rem;
-            line-height: 1.4;
-        }
-
-        .welcome-pane .feature-card .tag {
-            display: inline-block;
-            background: #1a5fb4;
-            color: white;
-            font-size: 0.6rem;
-            padding: 0.1rem 0.6rem;
-            border-radius: 2rem;
-            margin-top: 0.4rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .welcome-pane .feature-card .tag.soon-tag {
-            background: #3a4a5a;
-        }
-
-        .welcome-pane .footer-welcome {
-            margin-top: 2rem;
-            font-size: 0.8rem;
-            color: #4a6a8a;
-            border-top: 1px solid #1a2a3a;
-            padding-top: 1.5rem;
-            width: 100%;
-            max-width: 600px;
-        }
-
-        .welcome-pane .footer-welcome i {
-            color: #ffc107;
-        }
-
-        /* ===== RESPONSIVO ===== */
-        @media (max-width: 700px) {
-            .topbar .brand {
-                font-size: 1rem;
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
             }
-            .topbar .version {
-                font-size: 0.6rem;
+            .sidebar {
+                width: 100%;
+                height: auto;
+                padding: 1rem;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
             }
-            .tab-btn {
-                font-size: 0.75rem;
-                padding: 0.5rem 0.8rem;
+            .brand { margin-bottom: 0; }
+            .nav-menu {
+                flex-direction: row;
+                overflow-x: auto;
             }
-            .tab-btn i {
-                font-size: 0.7rem;
-            }
-            .welcome-pane h2 {
-                font-size: 1.6rem;
-            }
-            .welcome-pane .logo-large {
-                font-size: 3rem;
-            }
-            .welcome-pane .grid-features {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        @media (max-width: 450px) {
-            .topbar {
-                padding: 0.4rem 0.8rem;
-            }
-            .topbar .brand {
-                font-size: 0.85rem;
-            }
-            .tab-bar {
-                padding: 0.3rem 0.6rem 0;
-                gap: 0.1rem;
-            }
-            .tab-btn {
-                font-size: 0.65rem;
-                padding: 0.4rem 0.5rem;
-            }
-            .welcome-pane .grid-features {
-                grid-template-columns: 1fr;
-            }
-            .welcome-pane {
-                padding: 1.5rem 1rem;
-            }
-            .welcome-pane h2 {
-                font-size: 1.3rem;
-            }
+            .nav-item span { display: none; /* Oculta texto no mobile, mostra só ícone */ }
         }
     </style>
 </head>
 <body>
 
-    <!-- ===== TOP BAR ===== -->
-    <header class="topbar">
+    <!-- Menu Lateral -->
+    <aside class="sidebar">
         <div class="brand">
-            <i class="fas fa-shield-halved"></i>
-            GABINETE <span>247</span>
+            <i class="fas fa-layer-group"></i>
+            GABINETE 247
         </div>
-        <div class="version">
-            <i class="fas fa-code-branch"></i> v1.0 · beta
-        </div>
-    </header>
+        <nav>
+            <ul class="nav-menu">
+                <li>
+                    <!-- O 'target="app-frame"' faz o link abrir dentro do iframe -->
+                    <a href="inicio.html" target="app-frame" class="nav-item active" id="nav-inicio">
+                        <i class="fas fa-home"></i>
+                        <span>Início</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="gerador.html" target="app-frame" class="nav-item" id="nav-gerador">
+                        <i class="fas fa-image"></i>
+                        <span>Gerador de Matérias</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
 
-    <!-- ===== TAB BAR ===== -->
-    <nav class="tab-bar" id="tabBar">
-        <button class="tab-btn active" data-tab="welcome">
-            <i class="fas fa-home"></i> Início
-        </button>
-        <button class="tab-btn" data-tab="gerador-materias">
-            <i class="fas fa-newspaper"></i> Gerador de Matérias
-        </button>
-        <!-- Futuras abas serão adicionadas aqui -->
-        <button class="tab-btn" data-tab="em-breve" disabled style="opacity:0.5; cursor:default;">
-            <i class="fas fa-ellipsis-h"></i> Em breve
-            <span class="badge-tab soon">em breve</span>
-        </button>
-    </nav>
-
-    <!-- ===== TAB CONTENT ===== -->
-    <div class="tab-content-wrapper">
-
-        <!-- PAINEL: WELCOME -->
-        <div class="tab-pane active welcome-pane" id="pane-welcome">
-            <div class="logo-large">
-                <i class="fas fa-shield-halved"></i>
-            </div>
-            <h2>Bem-vindo ao <span>GABINETE 247</span></h2>
-            <p class="subtitle">Seu ecossistema digital para comunicação política</p>
-
-            <div class="grid-features">
-                <div class="feature-card">
-                    <i class="fas fa-newspaper"></i>
-                    <h4>Gerador de Matérias</h4>
-                    <p>Crie posts para redes sociais com texto, imagem e perfil personalizado.</p>
-                    <span class="tag">disponível</span>
-                </div>
-                <div class="feature-card">
-                    <i class="fas fa-chart-line"></i>
-                    <h4>Analytics</h4>
-                    <p>Métricas e relatórios de engajamento das suas publicações.</p>
-                    <span class="tag soon-tag">em breve</span>
-                </div>
-                <div class="feature-card">
-                    <i class="fas fa-calendar-alt"></i>
-                    <h4>Agenda</h4>
-                    <p>Organize compromissos, eventos e agendas do gabinete.</p>
-                    <span class="tag soon-tag">em breve</span>
-                </div>
-                <div class="feature-card">
-                    <i class="fas fa-users"></i>
-                    <h4>Equipe</h4>
-                    <p>Gestão de equipe e distribuição de tarefas internas.</p>
-                    <span class="tag soon-tag">em breve</span>
-                </div>
-            </div>
-
-            <div class="footer-welcome">
-                <i class="fas fa-plus-circle"></i> Novas ferramentas serão adicionadas em breve.
-                <br>
-                <span style="color:#3a5a7a; font-size:0.7rem;">
-                    <i class="fas fa-github"></i> Hospedado no GitHub · Deploy na Vercel
-                </span>
-            </div>
-        </div>
-
-        <!-- PAINEL: GERADOR DE MATÉRIAS (iframe) -->
-        <div class="tab-pane" id="pane-gerador-materias">
-            <iframe src="pages/gerador-materias.html" id="iframeMaterias" style="width:100%; height:100%; border:none;"></iframe>
-        </div>
-
-        <!-- Futuros painéis serão adicionados aqui -->
-
-    </div>
+    <!-- Área onde os aplicativos vão carregar -->
+    <main class="content-area">
+        <iframe name="app-frame" src="inicio.html" title="Aplicativo GABINETE 247"></iframe>
+    </main>
 
     <script>
-        (function() {
-            console.log('🚀 GABINETE 247 · Ecossistema iniciado!');
-
-            // ===== ABAS =====
-            const tabBtns = document.querySelectorAll('.tab-btn:not([disabled])');
-            const panes = {
-                welcome: document.getElementById('pane-welcome'),
-                'gerador-materias': document.getElementById('pane-gerador-materias')
-            };
-
-            // Verifica se todos os painéis existem
-            console.log('📋 Painéis disponíveis:', Object.keys(panes));
-
-            function switchTab(tabId) {
-                console.log('🔄 Alternando para aba:', tabId);
-
-                // Atualiza botões
-                tabBtns.forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.tab === tabId);
-                });
-
-                // Atualiza painéis
-                Object.keys(panes).forEach(key => {
-                    const pane = panes[key];
-                    if (pane) {
-                        pane.classList.toggle('active', key === tabId);
-                    }
-                });
-
-                // Recarrega o iframe do gerador quando ele for ativado
-                if (tabId === 'gerador-materias') {
-                    const iframe = document.getElementById('iframeMaterias');
-                    if (iframe) {
-                        // Verifica se o iframe já está carregado
-                        if (!iframe.dataset.loaded) {
-                            console.log('📄 Carregando iframe do Gerador de Matérias...');
-                            // Força o carregamento com um timestamp para evitar cache
-                            const src = iframe.getAttribute('src');
-                            if (src) {
-                                const timestamp = new Date().getTime();
-                                iframe.src = src + '?t=' + timestamp;
-                            }
-                            iframe.dataset.loaded = 'true';
-                        }
-                    }
-                }
-            }
-
-            // Evento de clique nas abas
-            tabBtns.forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    const tabId = this.dataset.tab;
-                    console.log('👆 Clique na aba:', tabId);
-                    if (tabId && panes[tabId]) {
-                        switchTab(tabId);
-                    } else {
-                        console.warn('⚠️ Aba não encontrada:', tabId);
-                    }
-                });
+        // Script simples para marcar o menu ativo
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', function() {
+                navItems.forEach(nav => nav.classList.remove('active'));
+                this.classList.add('active');
             });
-
-            // Carrega o iframe na primeira vez que a página for carregada
-            const iframe = document.getElementById('iframeMaterias');
-            if (iframe) {
-                console.log('🖥️ Iframe encontrado, configurando...');
-                
-                // Se o iframe já estiver na aba ativa, carrega imediatamente
-                const activePane = document.querySelector('.tab-pane.active');
-                if (activePane && activePane.id === 'pane-gerador-materias') {
-                    console.log('📄 Gerador de Matérias ativo na inicialização!');
-                    const src = iframe.getAttribute('src');
-                    if (src) {
-                        const timestamp = new Date().getTime();
-                        iframe.src = src + '?t=' + timestamp;
-                    }
-                    iframe.dataset.loaded = 'true';
-                }
-
-                // Evento de load do iframe
-                iframe.addEventListener('load', function() {
-                    console.log('✅ Iframe carregado com sucesso!');
-                    this.dataset.loaded = 'true';
-                });
-
-                // Evento de erro do iframe
-                iframe.addEventListener('error', function(e) {
-                    console.error('❌ Erro ao carregar iframe:', e);
-                    // Tenta recarregar após erro
-                    setTimeout(() => {
-                        const src = this.getAttribute('src');
-                        if (src) {
-                            const timestamp = new Date().getTime();
-                            this.src = src + '?t=' + timestamp;
-                        }
-                    }, 2000);
-                });
-            } else {
-                console.error('❌ Iframe não encontrado!');
-            }
-
-            // Inicializar com a aba ativa
-            const activeTab = document.querySelector('.tab-btn.active');
-            if (activeTab) {
-                const tabId = activeTab.dataset.tab;
-                console.log('🎯 Aba ativa inicial:', tabId);
-                if (tabId && tabId !== 'welcome') {
-                    switchTab(tabId);
-                }
-            }
-
-            console.log('✅ Ecossistema GABINETE 247 pronto!');
-            console.log('🔹 Abas disponíveis: Início, Gerador de Matérias');
-            console.log('🔹 Próximas ferramentas em desenvolvimento.');
-        })();
+        });
     </script>
-
 </body>
 </html>
