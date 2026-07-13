@@ -2,37 +2,43 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Gerador de Roteiros Profissional</title>
+    <title>Roteiro de Filmagens - Gabinete 247</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        :root { --brand-green: #113826; }
-        body { background: #000; color: #fff; padding: 2rem; font-family: sans-serif; }
-        .app-container { background: #1a1a1a; border-radius: 24px; padding: 40px; max-width: 950px; margin: auto; }
+        :root { --brand-green: #113826; --accent-color: #0a84ff; }
+        body { background: #000; color: #fff; padding: 2rem; font-family: -apple-system, sans-serif; }
+        .app-container { background: rgba(30,30,32,0.8); backdrop-filter: blur(20px); border-radius: 24px; padding: 40px; max-width: 950px; margin: auto; }
         textarea { width: 100%; height: 120px; background: #222; color: #fff; padding: 15px; border-radius: 12px; border: 1px solid #444; margin: 10px 0; }
-        .btn { background: #0a84ff; color: white; padding: 15px 25px; border-radius: 12px; border: none; cursor: pointer; font-weight: bold; width: 100%; }
-        
-        /* Estilo da Tabela Profissional */
-        #script-sheet { background: #fff; color: #333; width: 850px; margin: 20px auto; padding: 40px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background: var(--brand-green); color: white; padding: 12px; font-size: 13px; text-transform: uppercase; }
-        td { border: 1px solid #ddd; padding: 15px; vertical-align: top; font-size: 13px; }
-        .mov-list { margin: 0; padding-left: 15px; font-weight: 500; }
-        .ai-image { width: 100%; height: 150px; object-fit: cover; border-radius: 4px; }
+        .btn { background: var(--accent-color); color: white; padding: 15px 25px; border-radius: 12px; border: none; cursor: pointer; font-weight: bold; width: 100%; }
+        #script-sheet { background: #fff; color: #333; width: 850px; margin: 20px auto; padding: 40px; border-radius: 4px; }
+        .table-title { background: var(--brand-green); color: white; text-align: center; padding: 10px; font-weight: bold; margin: 15px 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: var(--brand-green); color: white; padding: 10px; font-size: 12px; }
+        td { border: 1px solid #ddd; padding: 10px; vertical-align: top; font-size: 13px; }
+        .ai-image { width: 100%; height: 100px; object-fit: cover; border-radius: 4px; }
+        .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--accent-color); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 10px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <h1>Gerador de Roteiros de Filmagem</h1>
-    <textarea id="prompt" placeholder="Descreva o evento detalhadamente..."></textarea>
-    <button class="btn" onclick="gerarRoteiro()">Gerar Roteiro Profissional</button>
+    <h1>Gerador de Roteiros IA</h1>
+    <p>Descreva o evento e a IA gerará o roteiro técnico.</p>
+    <textarea id="prompt" placeholder="Ex: Roteiro para cobertura cinematográfica de um culto de jovens em Cuiabá..."></textarea>
+    <button class="btn" onclick="gerarRoteiro()">Gerar Roteiro e Imagens</button>
+
+    <div id="loader" style="display:none; text-align:center; padding:20px;">
+        <div class="spinner"></div> 
+        <p>Consultando IA...</p>
+    </div>
 
     <div id="script-sheet">
-        <h1 style="color:var(--brand-green); text-align:center;">ROTEIRO DE FILMAGENS</h1>
+        <h1 style="color:var(--brand-green); text-align: center;">ROTEIRO DE FILMAGENS</h1>
+        <div class="table-title">CAPTAÇÕES E CENAS</div>
         <table id="tabela-cenas">
             <thead>
-                <tr>
-                    <th>CENA</th><th>CONTEÚDO</th><th>REF. IA</th><th>MOVIMENTOS/ENQUADRAMENTOS</th><th>OBJETIVO</th>
-                </tr>
+                <tr><th>CENA</th><th>CONTEÚDO</th><th>REF. IA</th><th>MOVIMENTOS</th><th>OBJETIVO</th></tr>
             </thead>
             <tbody></tbody>
         </table>
@@ -43,24 +49,21 @@
     async function gerarRoteiro() {
         const prompt = document.getElementById('prompt').value;
         const loader = document.getElementById('loader');
+        if(!prompt) return alert("Descreva o evento!");
         
-        // Novo Prompt "Diretor de Fotografia"
-        const fullPrompt = `Crie um roteiro de filmagens técnico para: "${prompt}". 
-        O formato deve ser um JSON array de objetos. 
-        Cada objeto deve ter:
-        - "cena": número da cena.
-        - "conteudo": título da cena.
-        - "prompt": descrição detalhada para IA gerar imagem (em inglês).
-        - "movimentos": uma string com pontos (Ex: "• Plano Médio\n• Drone\n• Close nos detalhes").
-        - "objetivo": uma frase curta sobre o objetivo da cena.
-        Gere pelo menos 5 cenas. Retorne apenas JSON puro.`;
+        loader.style.display = 'block';
 
+        const fullPrompt = `Crie um roteiro de filmagens de 4 cenas para: "${prompt}". Responda estritamente com um array JSON válido contendo objetos com estas chaves: "cena", "conteudo", "prompt", "mov", "obj". Não escreva nenhum texto fora do array JSON.`;
         const url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}`;
-        
+
         try {
             const response = await fetch(url);
             let texto = await response.text();
-            const cenas = JSON.parse(texto.substring(texto.indexOf('['), texto.lastIndexOf(']') + 1));
+            
+            // Filtra o JSON de forma segura mesmo se a IA incluir texto extra
+            const start = texto.indexOf('[');
+            const end = texto.lastIndexOf(']') + 1;
+            const cenas = JSON.parse(texto.substring(start, end));
 
             const tbody = document.querySelector('#tabela-cenas tbody');
             tbody.innerHTML = '';
@@ -68,16 +71,19 @@
             cenas.forEach(c => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td style="text-align:center; font-size:24px; font-weight:bold;">${c.cena}</td>
-                    <td style="font-weight:bold; text-transform:uppercase;">${c.conteudo}</td>
-                    <td><img class="ai-image" src="https://image.pollinations.ai/prompt/${encodeURIComponent(c.prompt)}?width=400&height=250&nologo=true"></td>
-                    <td><ul class="mov-list">${c.movimentos.replace(/•/g, '').split('\n').map(m => m.trim() ? `<li>${m}</li>` : '').join('')}</ul></td>
-                    <td>${c.objetivo}</td>
+                    <td style="text-align:center; font-weight:bold;">${c.cena || '-'}</td>
+                    <td>${c.conteudo || '-'}</td>
+                    <td><img class="ai-image" src="https://image.pollinations.ai/prompt/${encodeURIComponent(c.prompt || 'cinematic photography')}?width=400&height=250&nologo=true"></td>
+                    <td>${(c.mov || '').replace(/\n/g, '<br>')}</td>
+                    <td>${c.obj || '-'}</td>
                 `;
                 tbody.appendChild(tr);
             });
+            loader.style.display = 'none';
         } catch(e) {
-            alert("Erro ao formatar o roteiro. Tente um prompt mais descritivo.");
+            console.error("Erro na geração:", e);
+            alert("A IA retornou um formato inesperado. Tente clicar em gerar novamente.");
+            loader.style.display = 'none';
         }
     }
 </script>
