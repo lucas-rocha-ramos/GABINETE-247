@@ -101,7 +101,7 @@
             font-family: inherit;
         }
 
-        .tab-btn:hover {
+        .tab-btn:hover:not([disabled]) {
             color: #b0ccee;
             background: #1a2a3a;
         }
@@ -110,6 +110,11 @@
             color: #ffffff;
             background: #162232;
             border-bottom-color: #1a5fb4;
+        }
+
+        .tab-btn[disabled] {
+            opacity: 0.4;
+            cursor: not-allowed;
         }
 
         .tab-btn i {
@@ -396,7 +401,7 @@
 
         <!-- PAINEL: GERADOR DE MATÉRIAS (iframe) -->
         <div class="tab-pane" id="pane-gerador-materias">
-            <iframe src="pages/gerador-materias.html" id="iframeMaterias"></iframe>
+            <iframe src="pages/gerador-materias.html" id="iframeMaterias" style="width:100%; height:100%; border:none;"></iframe>
         </div>
 
         <!-- Futuros painéis serão adicionados aqui -->
@@ -405,6 +410,8 @@
 
     <script>
         (function() {
+            console.log('🚀 GABINETE 247 · Ecossistema iniciado!');
+
             // ===== ABAS =====
             const tabBtns = document.querySelectorAll('.tab-btn:not([disabled])');
             const panes = {
@@ -412,7 +419,12 @@
                 'gerador-materias': document.getElementById('pane-gerador-materias')
             };
 
+            // Verifica se todos os painéis existem
+            console.log('📋 Painéis disponíveis:', Object.keys(panes));
+
             function switchTab(tabId) {
+                console.log('🔄 Alternando para aba:', tabId);
+
                 // Atualiza botões
                 tabBtns.forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.tab === tabId);
@@ -420,39 +432,94 @@
 
                 // Atualiza painéis
                 Object.keys(panes).forEach(key => {
-                    panes[key].classList.toggle('active', key === tabId);
+                    const pane = panes[key];
+                    if (pane) {
+                        pane.classList.toggle('active', key === tabId);
+                    }
                 });
 
                 // Recarrega o iframe do gerador quando ele for ativado
                 if (tabId === 'gerador-materias') {
                     const iframe = document.getElementById('iframeMaterias');
-                    // Recarrega apenas se não estiver carregado ou se for a primeira vez
-                    if (!iframe.dataset.loaded) {
-                        iframe.dataset.loaded = 'true';
-                        iframe.src = iframe.src; // força reload
+                    if (iframe) {
+                        // Verifica se o iframe já está carregado
+                        if (!iframe.dataset.loaded) {
+                            console.log('📄 Carregando iframe do Gerador de Matérias...');
+                            // Força o carregamento com um timestamp para evitar cache
+                            const src = iframe.getAttribute('src');
+                            if (src) {
+                                const timestamp = new Date().getTime();
+                                iframe.src = src + '?t=' + timestamp;
+                            }
+                            iframe.dataset.loaded = 'true';
+                        }
                     }
                 }
             }
 
+            // Evento de clique nas abas
             tabBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', function(e) {
                     const tabId = this.dataset.tab;
+                    console.log('👆 Clique na aba:', tabId);
                     if (tabId && panes[tabId]) {
                         switchTab(tabId);
+                    } else {
+                        console.warn('⚠️ Aba não encontrada:', tabId);
                     }
                 });
             });
 
-            // Carrega o iframe na primeira vez que a aba for acessada
+            // Carrega o iframe na primeira vez que a página for carregada
             const iframe = document.getElementById('iframeMaterias');
-            iframe.addEventListener('load', function() {
-                this.dataset.loaded = 'true';
-            });
+            if (iframe) {
+                console.log('🖥️ Iframe encontrado, configurando...');
+                
+                // Se o iframe já estiver na aba ativa, carrega imediatamente
+                const activePane = document.querySelector('.tab-pane.active');
+                if (activePane && activePane.id === 'pane-gerador-materias') {
+                    console.log('📄 Gerador de Matérias ativo na inicialização!');
+                    const src = iframe.getAttribute('src');
+                    if (src) {
+                        const timestamp = new Date().getTime();
+                        iframe.src = src + '?t=' + timestamp;
+                    }
+                    iframe.dataset.loaded = 'true';
+                }
 
-            // Se a aba de gerador for a primeira ativa, carrega
-            // (já está definido no HTML, mas garantimos)
+                // Evento de load do iframe
+                iframe.addEventListener('load', function() {
+                    console.log('✅ Iframe carregado com sucesso!');
+                    this.dataset.loaded = 'true';
+                });
 
-            console.log('GABINETE 247 · Ecossistema ativo!');
+                // Evento de erro do iframe
+                iframe.addEventListener('error', function(e) {
+                    console.error('❌ Erro ao carregar iframe:', e);
+                    // Tenta recarregar após erro
+                    setTimeout(() => {
+                        const src = this.getAttribute('src');
+                        if (src) {
+                            const timestamp = new Date().getTime();
+                            this.src = src + '?t=' + timestamp;
+                        }
+                    }, 2000);
+                });
+            } else {
+                console.error('❌ Iframe não encontrado!');
+            }
+
+            // Inicializar com a aba ativa
+            const activeTab = document.querySelector('.tab-btn.active');
+            if (activeTab) {
+                const tabId = activeTab.dataset.tab;
+                console.log('🎯 Aba ativa inicial:', tabId);
+                if (tabId && tabId !== 'welcome') {
+                    switchTab(tabId);
+                }
+            }
+
+            console.log('✅ Ecossistema GABINETE 247 pronto!');
             console.log('🔹 Abas disponíveis: Início, Gerador de Matérias');
             console.log('🔹 Próximas ferramentas em desenvolvimento.');
         })();
