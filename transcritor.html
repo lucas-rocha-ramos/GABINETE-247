@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeuralSync™ Audio - Transcrição IA</title>
+    <title>NeuralSync™ Audio - IA Proprietária</title>
     <style>
         /* Variáveis de estilo iOS 26 / Futuristic Apple */
         :root {
@@ -24,7 +24,7 @@
             background: radial-gradient(circle at 15% 50%, rgba(72, 49, 157, 0.4), transparent 50%), radial-gradient(circle at 85% 30%, rgba(10, 132, 255, 0.3), transparent 50%), #000000; background-attachment: fixed;
         }
 
-        .glass-panel { background: var(--glass-bg); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid var(--glass-border); border-radius: 36px; width: 90%; max-width: 800px; min-height: 500px; padding: 40px; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5); position: relative; overflow: hidden; }
+        .glass-panel { background: var(--glass-bg); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid var(--glass-border); border-radius: 36px; width: 90%; max-width: 800px; min-height: 500px; padding: 40px; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5); position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
         
         .header { text-align: center; margin-bottom: 40px; }
         .header h1 { font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #fff, #a0a0a5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -58,6 +58,7 @@
         .btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 10px 24px; border-radius: 16px; cursor: pointer; backdrop-filter: blur(10px); transition: all 0.2s; font-size: 14px; font-weight: 500; }
         .btn:hover { background: rgba(255,255,255,0.2); }
         .btn-primary { background: var(--accent-color); border: none; }
+        .btn-primary:hover { background: #007aff; box-shadow: 0 4px 15px var(--accent-glow); }
     </style>
 </head>
 <body>
@@ -67,18 +68,18 @@
         
         <div class="header">
             <h1>NeuralSync™ Audio</h1>
-            <p>Transcrição avançada com Diarização via AssemblyAI</p>
+            <p>Processamento neural em infraestrutura própria</p>
         </div>
 
         <div id="upload-section">
             <div class="upload-icon">🎙️</div>
             <h3>Toque ou arraste seu arquivo</h3>
-            <p style="color: var(--text-secondary); margin-top: 8px; font-size: 14px;">Suporta arquivos longos (Identifica diferentes vozes automaticamente)</p>
+            <p style="color: var(--text-secondary); margin-top: 8px; font-size: 14px;">Sem limite de tamanho (Até 2GB suportados)</p>
             <button class="upload-btn">Selecionar Arquivo</button>
         </div>
 
         <div id="processing-section">
-            <div class="processing-text" id="status-text">Iniciando conexão neural...</div>
+            <div class="processing-text" id="status-text">Iniciando análise neural profunda...<br><span style="font-size: 14px; color: var(--text-secondary); font-weight: normal; margin-top: 10px; display: block;">Isso pode levar alguns minutos dependendo do tamanho do vídeo.</span></div>
         </div>
 
         <div id="result-section">
@@ -91,11 +92,7 @@
     </div>
 
     <script>
-        // ======= COLOQUE SUA CHAVE DA ASSEMBLYAI AQUI =======
-        const ASSEMBLYAI_API_KEY = "SUA-CHAVE-AQUI"; 
-        // ====================================================
-
-        // Animação de Partículas
+        // Animação de Partículas (IA avançada)
         const canvas = document.getElementById('particles');
         const ctx = canvas.getContext('2d');
         let particlesArray;
@@ -106,12 +103,9 @@
             particlesArray = [];
             for (let i = 0; i < (canvas.width * canvas.height) / 6000; i++) {
                 particlesArray.push(new Particle(
-                    (Math.random() * (canvas.width - 4) + 2), 
-                    (Math.random() * (canvas.height - 4) + 2), 
-                    (Math.random() * 2) - 1, 
-                    (Math.random() * 2) - 1, 
-                    (Math.random() * 2) + 1, 
-                    '#0a84ff'
+                    (Math.random() * (canvas.width - 4) + 2), (Math.random() * (canvas.height - 4) + 2), 
+                    (Math.random() * 2) - 1, (Math.random() * 2) - 1, 
+                    (Math.random() * 2) + 1, '#0a84ff'
                 ));
             }
         }
@@ -146,7 +140,7 @@
             connect();
         }
 
-        // Lógica de Integração com AssemblyAI
+        // Lógica de Envio para a API Python Própria
         const fileInput = document.createElement('input');
         fileInput.type = 'file';
         fileInput.accept = 'audio/*,video/*';
@@ -163,108 +157,76 @@
             const file = e.target.files[0];
             if (!file) return;
 
-            if (ASSEMBLYAI_API_KEY === "SUA-CHAVE-AQUI") {
-                alert("Você precisa inserir sua chave da AssemblyAI no código!");
+            // Limite de segurança de 2GB (Para não travar a memória do navegador)
+            if (file.size > 2 * 1024 * 1024 * 1024) {
+                alert("O arquivo tem mais de 2GB! Limite máximo atingido.");
                 return;
             }
 
-            // Inicia animação
+            // Inicia interface de carregamento
             uploadSection.style.display = 'none';
             processingSection.style.display = 'flex';
             canvas.style.opacity = 1;
             initParticles(); animate();
 
+            const formData = new FormData();
+            formData.append('file', file);
+
             try {
-                // Passo 1: Fazer o Upload do arquivo para a AssemblyAI
-                statusText.innerText = "Fazendo upload seguro do arquivo...\nIsso pode demorar dependendo do tamanho.";
-                const uploadResponse = await fetch('https://api.assemblyai.com/v2/upload', {
-                    method: 'POST',
-                    headers: { 'Authorization': ASSEMBLYAI_API_KEY },
-                    body: file
-                });
-                const uploadData = await uploadResponse.json();
+                // ATENÇÃO: Aqui definimos a URL da sua API Python.
+                // Troque "http://localhost:8000" pela URL do seu servidor quando colocar no ar (ex: Render/Railway).
+                const API_URL = 'http://localhost:8000/transcribe';
                 
-                if (uploadData.error) throw new Error(uploadData.error);
-                const audioUrl = uploadData.upload_url;
-
-                // Passo 2: Solicitar a transcrição com identificação de falantes (Diarização)
-                statusText.innerText = "Iniciando análise de vozes e contexto...";
-                const transcriptResponse = await fetch('https://api.assemblyai.com/v2/transcript', {
+                const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: {
-                        'Authorization': ASSEMBLYAI_API_KEY,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        audio_url: audioUrl,
-                        speaker_labels: true, // Aqui ativamos a identificação de quem fala!
-                        language_code: 'pt'   // Força o idioma português
-                    })
+                    body: formData
                 });
-                
-                const transcriptData = await transcriptResponse.json();
-                if (transcriptData.error) throw new Error(transcriptData.error);
-                const transcriptId = transcriptData.id;
 
-                // Passo 3: Polling (Verificar a cada 3 segundos se a IA já terminou de processar)
-                let isCompleted = false;
-                let finalData = null;
-
-                while (!isCompleted) {
-                    await new Promise(resolve => setTimeout(resolve, 3000));
-                    
-                    const pollingResponse = await fetch(`https://api.assemblyai.com/v2/transcript/${transcriptId}`, {
-                        headers: { 'Authorization': ASSEMBLYAI_API_KEY }
-                    });
-                    const pollingData = await pollingResponse.json();
-
-                    if (pollingData.status === 'completed') {
-                        isCompleted = true;
-                        finalData = pollingData;
-                    } else if (pollingData.status === 'error') {
-                        throw new Error(pollingData.error);
-                    } else {
-                        statusText.innerText = `Analisando espectro neural... Status: ${pollingData.status}`;
-                    }
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Erro do servidor Python (${response.status}): ${errorText}`);
                 }
 
-                // Passo 4: Exibir os resultados separando por interlocutores
+                const data = await response.json();
+
+                if (data.error) throw new Error(data.error);
+
+                // Para animação e mostra os resultados
                 cancelAnimationFrame(animationFrameId);
                 canvas.style.opacity = 0;
                 processingSection.style.display = 'none';
                 resultSection.style.display = 'block';
                 transcriptionBox.innerHTML = '';
 
-                if (finalData.utterances && finalData.utterances.length > 0) {
-                    finalData.utterances.forEach(utterance => {
-                        // Formata o tempo de milisegundos para [MM:SS]
-                        const totalSeconds = Math.floor(utterance.start / 1000);
-                        const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
-                        const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+                if (data.segments && data.segments.length > 0) {
+                    data.segments.forEach(segment => {
+                        // Formata segundos do backend (ex: 65) para o visual [01:05]
+                        const minutes = Math.floor(segment.start / 60).toString().padStart(2, '0');
+                        const seconds = Math.floor(segment.start % 60).toString().padStart(2, '0');
                         
                         transcriptionBox.innerHTML += `
                             <div class="speech-block">
                                 <div class="meta-info">
                                     <span class="timestamp">[${minutes}:${seconds}]</span>
-                                    <span class="speaker">Orador ${utterance.speaker}</span>
+                                    <span class="speaker">${segment.speaker || "Orador"}</span>
                                 </div>
-                                <div class="text">${utterance.text}</div>
+                                <div class="text">${segment.text}</div>
                             </div>
                         `;
                     });
-                } else if (finalData.text) {
-                    // Fallback
-                    transcriptionBox.innerHTML = `<div class="speech-block"><div class="text">${finalData.text}</div></div>`;
                 } else {
-                    transcriptionBox.innerHTML = '<p style="color: white;">Nenhuma fala detectada.</p>';
+                    transcriptionBox.innerHTML = '<p style="color: white; text-align: center;">Nenhuma fala detectada.</p>';
                 }
 
             } catch (error) {
                 console.error(error);
-                alert('Erro durante o processo: ' + error.message);
+                alert('Falha na comunicação com a API.\nVerifique se o seu backend Python está rodando e tente novamente.\n\nDetalhe: ' + error.message);
                 location.reload();
             }
         });
+
+        // Refaz as partículas se redimensionar a tela
+        window.addEventListener('resize', () => { if (canvas.style.opacity == 1) initParticles(); });
     </script>
 </body>
 </html>
