@@ -5,8 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transcrição IA - Gabinete 247</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- IMPORTANDO O TRANSFORMERS.JS PARA RODAR IA NO NAVEGADOR -->
+    <script type="module">
+        import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.16.0';
+        window.pipeline = pipeline;
+        window.env = env;
+    </script>
     <style>
-        /* Variáveis de estilo iOS / Futuristic Apple */
         :root {
             --bg-color: #000000;
             --glass-bg: rgba(30, 30, 32, 0.65);
@@ -18,23 +23,16 @@
             --timestamp-color: #32d74b;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
 
         body {
-            background-color: transparent; /* Para puxar o fundo do painel, se necessário, ou usar o gradiente abaixo */
+            background-color: transparent;
             color: var(--text-primary);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow-x: hidden;
-            /* Fundo com gradiente animado estilo iOS */
             background: radial-gradient(circle at 15% 50%, rgba(72, 49, 157, 0.4), transparent 50%),
                         radial-gradient(circle at 85% 30%, rgba(10, 132, 255, 0.3), transparent 50%),
                         #000000;
@@ -42,222 +40,59 @@
             padding: 2rem;
         }
 
-        /* Container Principal com Efeito de Vidro */
         .glass-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(40px);
-            -webkit-backdrop-filter: blur(40px);
-            border: 1px solid var(--glass-border);
-            border-radius: 36px;
-            width: 100%;
-            max-width: 900px;
-            min-height: 550px;
-            padding: 50px;
-            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
-            position: relative;
-            overflow: hidden;
-            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            background: var(--glass-bg); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border); border-radius: 36px; width: 100%; max-width: 900px;
+            min-height: 550px; padding: 50px; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+            position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
         .header { text-align: center; margin-bottom: 40px; position: relative; z-index: 2; }
-        
-        .header h1 {
-            font-size: 32px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            background: linear-gradient(135deg, #fff, #a0a0a5);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
+        .header h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; background: linear-gradient(135deg, #fff, #a0a0a5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .header p { color: var(--text-secondary); font-size: 16px; margin-top: 8px; }
 
-        /* Área de Upload */
         #upload-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border: 2px dashed rgba(255, 255, 255, 0.2);
-            border-radius: 24px;
-            padding: 60px 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            z-index: 2;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 2px dashed rgba(255, 255, 255, 0.2); border-radius: 24px; padding: 60px 20px;
+            cursor: pointer; transition: all 0.3s ease; position: relative; z-index: 2;
         }
-
-        #upload-section:hover {
-            border-color: var(--accent-color);
-            background: rgba(10, 132, 255, 0.05);
-        }
-
+        #upload-section:hover { border-color: var(--accent-color); background: rgba(10, 132, 255, 0.05); }
         .upload-icon { font-size: 48px; margin-bottom: 16px; color: var(--accent-color); }
-        
-        /* Esconde o input real de arquivo */
         #file-input { display: none; }
+        .upload-btn { background: var(--accent-color); color: white; border: none; padding: 14px 32px; border-radius: 20px; font-size: 16px; font-weight: 600; margin-top: 20px; box-shadow: 0 8px 24px var(--accent-glow); pointer-events: none; }
 
-        .upload-btn {
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 14px 32px;
-            border-radius: 20px;
-            font-size: 16px;
-            font-weight: 600;
-            margin-top: 20px;
-            cursor: pointer;
-            box-shadow: 0 8px 24px var(--accent-glow);
-            transition: transform 0.2s, box-shadow 0.2s;
-            pointer-events: none; /* Deixa o clique passar para a área tracejada */
-        }
+        #processing-section { display: none; flex-direction: column; align-items: center; justify-content: center; height: 350px; position: relative; z-index: 2; }
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; opacity: 0; transition: opacity 1s ease; }
+        .processing-text { position: relative; z-index: 1; font-size: 20px; font-weight: 500; letter-spacing: 1px; animation: pulse 2s infinite; text-align: center; }
+        .progress-bar-container { width: 60%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-top: 20px; overflow: hidden; position: relative; z-index: 1; }
+        .progress-bar { height: 100%; width: 0%; background: var(--accent-color); box-shadow: 0 0 10px var(--accent-color); transition: width 0.3s ease; }
 
-        /* Área de Processamento (Partículas) */
-        #processing-section {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 350px;
-            position: relative;
-            z-index: 2;
-        }
+        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; text-shadow: 0 0 15px rgba(255,255,255,0.5); } 100% { opacity: 0.6; } }
 
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 1s ease;
-        }
+        #result-section { display: none; animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1); position: relative; z-index: 2; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .processing-text {
-            position: relative;
-            z-index: 1;
-            font-size: 20px;
-            font-weight: 500;
-            letter-spacing: 1px;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; text-shadow: 0 0 15px rgba(255,255,255,0.5); }
-            100% { opacity: 0.6; }
-        }
-
-        /* Área de Resultado da Transcrição */
-        #result-section {
-            display: none;
-            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-            z-index: 2;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .transcription-box {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 20px;
-            padding: 24px;
-            max-height: 380px;
-            overflow-y: auto;
-            border: 1px solid rgba(255,255,255,0.05);
-            margin-bottom: 24px;
-        }
-
-        /* Custom Scrollbar */
+        .transcription-box { background: rgba(0, 0, 0, 0.3); border-radius: 20px; padding: 24px; max-height: 380px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 24px; }
         .transcription-box::-webkit-scrollbar { width: 8px; }
         .transcription-box::-webkit-scrollbar-track { background: transparent; }
         .transcription-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
         .speech-block { margin-bottom: 24px; line-height: 1.6; }
-
-        .meta-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 8px;
-            font-size: 14px;
-            flex-wrap: wrap;
-        }
-
-        .timestamp {
-            color: var(--timestamp-color);
-            font-family: "SF Mono", monospace;
-            font-weight: 500;
-            background: rgba(50, 215, 75, 0.1);
-            padding: 4px 10px;
-            border-radius: 8px;
-        }
-
+        .meta-info { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; font-size: 14px; flex-wrap: wrap; }
+        .timestamp { color: var(--timestamp-color); font-family: "SF Mono", monospace; font-weight: 500; background: rgba(50, 215, 75, 0.1); padding: 4px 10px; border-radius: 8px; }
         .speaker { font-weight: 600; color: var(--accent-color); font-size: 15px; }
-        .description { color: var(--text-secondary); font-style: italic; font-size: 13px; }
-        .text {
-            color: rgba(255, 255, 255, 0.95);
-            font-size: 16px;
-            padding-left: 14px;
-            border-left: 2px solid rgba(255,255,255,0.1);
-        }
+        .text { color: rgba(255, 255, 255, 0.95); font-size: 16px; padding-left: 14px; border-left: 2px solid rgba(255,255,255,0.1); outline: none; transition: background 0.2s;}
+        .text:focus { background: rgba(255,255,255,0.05); border-left: 2px solid var(--accent-color); }
 
-        /* Controles Inferiores */
-        .action-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .btn-action {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 12px 24px;
-            border-radius: 16px;
-            cursor: pointer;
-            backdrop-filter: blur(10px);
-            transition: all 0.2s;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
+        .action-buttons { display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap; }
+        .btn-action { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 12px 24px; border-radius: 16px; cursor: pointer; backdrop-filter: blur(10px); transition: all 0.2s; font-weight: 500; display: flex; align-items: center; gap: 8px; }
         .btn-action:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
         .btn-action.primary { background: var(--accent-color); border: none; box-shadow: 0 4px 15px var(--accent-glow); }
         .btn-action.primary:hover { background: #0070e0; }
-
-        /* Toast Notification (Mensagem de copiado) */
-        .toast {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: rgba(50, 215, 75, 0.2);
-            border: 1px solid var(--timestamp-color);
-            color: var(--timestamp-color);
-            padding: 10px 24px;
-            border-radius: 30px;
-            backdrop-filter: blur(10px);
-            font-weight: 600;
-            opacity: 0;
-            transition: all 0.4s ease;
-            z-index: 100;
-        }
+        .toast { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: rgba(50, 215, 75, 0.2); border: 1px solid var(--timestamp-color); color: var(--timestamp-color); padding: 10px 24px; border-radius: 30px; backdrop-filter: blur(10px); font-weight: 600; opacity: 0; transition: all 0.4s ease; z-index: 100; }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-        @media (max-width: 600px) {
-            .glass-panel { padding: 30px 20px; border-radius: 24px; }
-            .action-buttons { justify-content: center; }
-            .btn-action { width: 100%; justify-content: center; }
-        }
+        @media (max-width: 600px) { .glass-panel { padding: 30px 20px; border-radius: 24px; } .action-buttons { justify-content: center; } .btn-action { width: 100%; justify-content: center; } }
     </style>
 </head>
 <body>
@@ -267,71 +102,29 @@
         
         <div class="header">
             <h1>NeuralSync™ Audio</h1>
-            <p>Transcrição avançada com mapeamento de contexto e emoção</p>
+            <p>Transcrição IA Gratuita direto no seu navegador</p>
         </div>
 
-        <!-- Seção de Upload -->
         <div id="upload-section" onclick="document.getElementById('file-input').click()">
             <input type="file" id="file-input" accept="audio/*,video/*">
             <i class="fas fa-cloud-upload-alt upload-icon"></i>
-            <h3 style="font-size: 1.2rem; font-weight: 600;">Toque para selecionar um arquivo</h3>
-            <p style="color: var(--text-secondary); margin-top: 8px; font-size: 14px;">Suporta MP4, MP3, WAV (Max 500MB)</p>
+            <h3 style="font-size: 1.2rem; font-weight: 600;">Toque para selecionar áudio ou vídeo</h3>
+            <p style="color: var(--text-secondary); margin-top: 8px; font-size: 14px;">Recomendado: Arquivos de até 5 minutos para processamento rápido.</p>
             <button class="upload-btn">Carregar Mídia</button>
         </div>
 
-        <!-- Seção de Processamento -->
         <div id="processing-section">
-            <div class="processing-text" id="status-text">Iniciando análise neural...</div>
+            <div class="processing-text" id="status-text">Preparando motor de IA Neural...</div>
+            <p style="color: var(--text-secondary); font-size: 13px; margin-top: 10px;" id="sub-status">O primeiro uso baixará o modelo (~40MB)</p>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
         </div>
 
-        <!-- Seção de Resultado -->
         <div id="result-section">
+            <p style="color: var(--timestamp-color); font-size: 12px; margin-bottom: 10px; text-align: right;"><i class="fas fa-info-circle"></i> Clique nos textos para corrigir erros</p>
             <div class="transcription-box" id="transcription-content">
-                
-                <!-- O conteúdo gerado vai simular um retorno de API -->
-                <div class="speech-block">
-                    <div class="meta-info">
-                        <span class="timestamp">[00:00:12]</span>
-                        <span class="speaker">Apresentador</span>
-                        <span class="description">(Tom entusiasmado, som de palmas ao fundo)</span>
-                    </div>
-                    <div class="text">
-                        Boa noite a todos! Hoje vamos falar sobre como o ecossistema do Gabinete 247 está revolucionando a organização interna das campanhas e projetos no Mato Grosso.
-                    </div>
-                </div>
-
-                <div class="speech-block">
-                    <div class="meta-info">
-                        <span class="timestamp">[00:00:25]</span>
-                        <span class="speaker">Convidada (Deputada)</span>
-                        <span class="description">(Ajusta o microfone, tom assertivo)</span>
-                    </div>
-                    <div class="text">
-                        Exatamente. Quando nós integramos o Gerador de Matérias com o nosso dashboard central, ganhamos uma agilidade que não existia na política tradicional. É uma arquitetura limpa, direta e sem distrações.
-                    </div>
-                </div>
-
-                <div class="speech-block">
-                    <div class="meta-info">
-                        <span class="timestamp">[00:00:42]</span>
-                        <span class="speaker">Apresentador</span>
-                    </div>
-                    <div class="text">
-                        E essa tecnologia de transcrição que estamos usando agora?
-                    </div>
-                </div>
-
-                <div class="speech-block">
-                    <div class="meta-info">
-                        <span class="timestamp">[00:00:45]</span>
-                        <span class="speaker">Convidada (Deputada)</span>
-                        <span class="description">(Sorrindo)</span>
-                    </div>
-                    <div class="text">
-                        É a tecnologia invisível. Ela simplesmente funciona, mapeando até as descrições de contexto. Facilita muito a vida da assessoria de imprensa.
-                    </div>
-                </div>
-
+                <!-- Conteúdo será injetado aqui pelo JS -->
             </div>
 
             <div class="action-buttons">
@@ -351,168 +144,191 @@
     </div>
 
     <script>
-        // 1. ANIMAÇÃO DE PARTÍCULAS (MANTIDA INTACTA)
+        // --- 1. CONFIGURAÇÃO DE PARTÍCULAS (MANTIDA PARA O VISUAL) ---
         const canvas = document.getElementById('particles');
         const ctx = canvas.getContext('2d');
-        let particlesArray;
-        let animationFrameId;
+        let particlesArray, animationFrameId;
 
         function initParticles() {
             canvas.width = document.getElementById('main-panel').offsetWidth;
             canvas.height = document.getElementById('main-panel').offsetHeight;
             particlesArray = [];
-            let numberOfParticles = (canvas.width * canvas.height) / 6000;
-            
-            for (let i = 0; i < numberOfParticles; i++) {
+            for (let i = 0; i < (canvas.width * canvas.height)/6000; i++) {
                 let size = (Math.random() * 2) + 1;
-                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
-                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
-                let directionX = (Math.random() * 2) - 1;
-                let directionY = (Math.random() * 2) - 1;
-                let color = '#0a84ff';
-                particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
+                particlesArray.push(new Particle(
+                    (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2),
+                    (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2),
+                    (Math.random() * 2) - 1, (Math.random() * 2) - 1, size, '#0a84ff'
+                ));
             }
         }
-
         class Particle {
-            constructor(x, y, directionX, directionY, size, color) {
-                this.x = x; this.y = y; this.directionX = directionX; this.directionY = directionY; this.size = size; this.color = color;
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
-                ctx.fillStyle = '#ffffff';
-                ctx.fill();
-            }
-            update() {
-                if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX;
-                if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY;
-                this.x += this.directionX; this.y += this.directionY;
-                this.draw();
+            constructor(x, y, dx, dy, s, c) { this.x=x; this.y=y; this.dx=dx; this.dy=dy; this.s=s; }
+            draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.s, 0, Math.PI*2, false); ctx.fillStyle='#fff'; ctx.fill(); }
+            update() { 
+                if(this.x > canvas.width || this.x < 0) this.dx = -this.dx; 
+                if(this.y > canvas.height || this.y < 0) this.dy = -this.dy; 
+                this.x += this.dx; this.y += this.dy; this.draw(); 
             }
         }
-
         function connect() {
-            let opacityValue = 1;
-            for (let a = 0; a < particlesArray.length; a++) {
-                for (let b = a; b < particlesArray.length; b++) {
-                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) + 
-                                   ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
-                    if (distance < (canvas.width / 7) * (canvas.height / 7)) {
-                        opacityValue = 1 - (distance / 10000);
-                        ctx.strokeStyle = 'rgba(10, 132, 255,' + opacityValue + ')';
-                        ctx.lineWidth = 1;
-                        ctx.beginPath();
+            for(let a=0; a<particlesArray.length; a++){
+                for(let b=a; b<particlesArray.length; b++){
+                    let dist = ((particlesArray[a].x - particlesArray[b].x)**2) + ((particlesArray[a].y - particlesArray[b].y)**2);
+                    if(dist < (canvas.width/7)*(canvas.height/7)){
+                        ctx.strokeStyle = `rgba(10, 132, 255, ${1 - (dist/10000)})`;
+                        ctx.lineWidth = 1; ctx.beginPath();
                         ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
-                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
-                        ctx.stroke();
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y); ctx.stroke();
                     }
                 }
             }
         }
-
         function animateParticles() {
             animationFrameId = requestAnimationFrame(animateParticles);
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for (let i = 0; i < particlesArray.length; i++) { particlesArray[i].update(); }
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            for(let i=0; i<particlesArray.length; i++) particlesArray[i].update();
             connect();
         }
 
-        // 2. LÓGICA DE UPLOAD E PROCESSAMENTO
-        document.getElementById('file-input').addEventListener('change', function(e) {
+        // --- 2. LÓGICA DE INTELIGÊNCIA ARTIFICIAL REAL ---
+        
+        // Formata os segundos do Whisper para o estilo [00:00:00]
+        function formatTime(seconds) {
+            const date = new Date(null);
+            date.setSeconds(seconds);
+            return `[${date.toISOString().substr(11, 8)}]`;
+        }
+
+        // Converte o arquivo de vídeo/áudio do usuário para o formato que a IA entende
+        async function extractAudio(file) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+            const arrayBuffer = await file.arrayBuffer();
+            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            return audioBuffer.getChannelData(0); // Transforma em mono channel
+        }
+
+        document.getElementById('file-input').addEventListener('change', async function(e) {
             if(this.files && this.files.length > 0) {
-                startTranscription(this.files[0].name);
+                const file = this.files[0];
+                
+                // Transições de UI
+                document.getElementById('upload-section').style.display = 'none';
+                document.getElementById('processing-section').style.display = 'flex';
+                canvas.style.opacity = 1;
+                initParticles(); animateParticles();
+
+                const statusText = document.getElementById('status-text');
+                const subStatus = document.getElementById('sub-status');
+                const progressBar = document.getElementById('progress-bar');
+                const resultBox = document.getElementById('transcription-content');
+
+                try {
+                    statusText.innerText = "Extraindo faixa de áudio...";
+                    const audioData = await extractAudio(file);
+
+                    statusText.innerText = "Carregando IA Whisper (Pode levar 1 minuto na 1ª vez)...";
+                    
+                    // Impede o cache local de quebrar e carrega o modelo
+                    window.env.allowLocalModels = false;
+                    
+                    // Baixa/Prepara o modelo Whisper-tiny (menor modelo possível para rodar na web)
+                    const transcriber = await window.pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny', {
+                        progress_callback: (info) => {
+                            if(info.status === 'progress') {
+                                progressBar.style.width = `${info.progress}%`;
+                            }
+                        }
+                    });
+
+                    statusText.innerText = "Transcrevendo... Isso usa o processamento do seu dispositivo.";
+                    subStatus.innerText = "Analisando faixas neurais...";
+                    progressBar.style.width = '100%';
+                    progressBar.style.animation = 'pulse 1s infinite alternate';
+
+                    // Roda a Inteligência Artificial no áudio
+                    const output = await transcriber(audioData, {
+                        chunk_length_s: 30, // Corta em pedaços para não travar
+                        stride_length_s: 5,
+                        language: 'portuguese',
+                        task: 'transcribe',
+                        return_timestamps: true // Para pegar o [00:00:15]
+                    });
+
+                    // Monta o Resultado na Tela
+                    resultBox.innerHTML = ''; // Limpa a tela
+                    
+                    // A IA Whisper retorna os "chunks" (pedaços de fala com o tempo exato)
+                    if (output.chunks && output.chunks.length > 0) {
+                        output.chunks.forEach((chunk, index) => {
+                            const startTime = formatTime(chunk.timestamp[0]);
+                            const blocoHTML = `
+                                <div class="speech-block">
+                                    <div class="meta-info">
+                                        <span class="timestamp">${startTime}</span>
+                                        <span class="speaker" contenteditable="true">Locutor ${index + 1}</span>
+                                        <span class="description" style="font-size:11px; cursor:pointer;" onclick="this.innerText='(Editável)'">(Toque para descrever)</span>
+                                    </div>
+                                    <!-- A tag contenteditable permite que o usuário corrija erros da IA clicando no texto -->
+                                    <div class="text" contenteditable="true">${chunk.text.trim()}</div>
+                                </div>
+                            `;
+                            resultBox.innerHTML += blocoHTML;
+                        });
+                    } else {
+                        // Caso a IA não consiga separar em chunks
+                        resultBox.innerHTML = `<div class="speech-block"><div class="text" contenteditable="true">${output.text}</div></div>`;
+                    }
+
+                    // Fim do Processo
+                    cancelAnimationFrame(animationFrameId);
+                    canvas.style.opacity = 0;
+                    document.getElementById('processing-section').style.display = 'none';
+                    document.getElementById('result-section').style.display = 'block';
+
+                } catch (error) {
+                    console.error(error);
+                    statusText.innerText = "Erro ao processar.";
+                    subStatus.innerText = "Tente usar um arquivo mais curto ou verifique a conexão.";
+                    progressBar.style.background = '#ff3b30';
+                }
             }
         });
 
-        function startTranscription(fileName) {
-            const uploadSection = document.getElementById('upload-section');
-            const processingSection = document.getElementById('processing-section');
-            const resultSection = document.getElementById('result-section');
-            const statusText = document.getElementById('status-text');
-
-            // Esconde upload e mostra processamento
-            uploadSection.style.display = 'none';
-            processingSection.style.display = 'flex';
-            
-            // Inicia partículas
-            canvas.style.opacity = 1;
-            initParticles();
-            animateParticles();
-
-            // Simula a evolução da IA
-            setTimeout(() => { statusText.innerText = "Isolando vozes e removendo ruídos de fundo..."; }, 1500);
-            setTimeout(() => { statusText.innerText = "Identificando interlocutores e contexto..."; }, 3500);
-            setTimeout(() => { statusText.innerText = "Formatando metadados textuais..."; }, 5500);
-
-            // Finaliza
-            setTimeout(() => {
-                cancelAnimationFrame(animationFrameId);
-                canvas.style.opacity = 0;
-                processingSection.style.display = 'none';
-                resultSection.style.display = 'block';
-            }, 7000);
-        }
-
-        // 3. EXPORTAÇÃO PROFISSIONAL (TXT E ÁREA DE TRANSFERÊNCIA)
-        
-        // Função interna que pega o HTML visual e transforma em texto puro bem formatado
+        // --- 3. EXPORTAÇÃO ---
         function gerarTextoPlano() {
             let plainText = "=================================================\n";
-            plainText += "   TRANSCRIÇÃO DE ÁUDIO/VÍDEO - GABINETE 247\n";
-            plainText += "   Processado por: NeuralSync™ AI\n";
+            plainText += "   TRANSCRIÇÃO DE ÁUDIO - GABINETE 247\n";
+            plainText += "   Gerado localmente por IA (Whisper)\n";
             plainText += "=================================================\n\n";
 
             const blocos = document.querySelectorAll('.speech-block');
-            
             blocos.forEach(bloco => {
-                const tempo = bloco.querySelector('.timestamp').innerText;
-                const locutor = bloco.querySelector('.speaker').innerText;
-                
-                const descElement = bloco.querySelector('.description');
-                const descricao = descElement ? ` ${descElement.innerText}` : '';
-                
+                const tempo = bloco.querySelector('.timestamp') ? bloco.querySelector('.timestamp').innerText : '';
+                const locutor = bloco.querySelector('.speaker') ? bloco.querySelector('.speaker').innerText : '';
                 const textoFala = bloco.querySelector('.text').innerText.trim();
-
-                // Monta a linha no formato: [00:00:12] Nome (Contexto):
-                // Fala...
-                plainText += `${tempo} ${locutor}${descricao}\n${textoFala}\n\n`;
+                plainText += `${tempo} ${locutor}\n${textoFala}\n\n`;
             });
-
             return plainText;
         }
 
         function copiarTexto() {
-            const texto = gerarTextoPlano();
-            navigator.clipboard.writeText(texto).then(() => {
+            navigator.clipboard.writeText(gerarTextoPlano()).then(() => {
                 const toast = document.getElementById('toast');
                 toast.classList.add('show');
                 setTimeout(() => toast.classList.remove('show'), 3000);
-            }).catch(err => {
-                alert("Erro ao copiar o texto: " + err);
             });
         }
 
         function baixarTXT() {
-            const texto = gerarTextoPlano();
-            // Cria um "Blob" (um arquivo digital na memória do navegador)
-            const blob = new Blob([texto], { type: 'text/plain;charset=utf-8' });
-            
-            // Cria um link temporário para forçar o download
+            const blob = new Blob([gerarTextoPlano()], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = url;
-            link.download = 'Transcricao_Gabinete247.txt';
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url); // Limpa a memória
+            link.href = url; link.download = 'Transcricao_Gabinete247.txt';
+            document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
         }
 
-        window.addEventListener('resize', () => {
-            if (canvas.style.opacity == 1) initParticles();
-        });
+        window.addEventListener('resize', () => { if(canvas.style.opacity == 1) initParticles(); });
     </script>
 </body>
 </html>
