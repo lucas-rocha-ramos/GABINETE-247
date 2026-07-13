@@ -2,392 +2,63 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assistente - Gem Personalizado</title>
+    <title>Gerador de Roteiro · GABINETE 247</title>
     <style>
-        :root {
-            --primary: #0a84ff;
-            --dark: #1a1a1a;
-            --card: #2a2a2a;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: var(--dark);
-            color: #fff;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .container {
-            max-width: 800px;
-            width: 100%;
-            background: var(--card);
-            border-radius: 24px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-        }
-        h1 {
-            font-size: 1.8rem;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #0a84ff, #6c5ce7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .subtitle {
-            color: #888;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-        .chat-box {
-            background: #1a1a1a;
-            border-radius: 16px;
-            padding: 20px;
-            max-height: 500px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            border: 1px solid #333;
-        }
-        .message {
-            margin-bottom: 15px;
-            padding: 12px 16px;
-            border-radius: 12px;
-            max-width: 85%;
-            word-wrap: break-word;
-        }
-        .message.user {
-            background: var(--primary);
-            margin-left: auto;
-            color: #fff;
-        }
-        .message.ai {
-            background: #2a2a2a;
-            border: 1px solid #444;
-            color: #eee;
-        }
-        .message.ai .loading {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: #666;
-            border-radius: 50%;
-            margin: 0 2px;
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 0.2; }
-            50% { opacity: 1; }
-        }
-        .input-group {
-            display: flex;
-            gap: 10px;
-        }
-        input {
-            flex: 1;
-            padding: 14px 18px;
-            border-radius: 12px;
-            border: 1px solid #444;
-            background: #1a1a1a;
-            color: #fff;
-            font-size: 14px;
-            outline: none;
-            transition: all 0.3s;
-        }
-        input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 20px rgba(10,132,255,0.1);
-        }
-        button {
-            padding: 14px 28px;
-            border-radius: 12px;
-            border: none;
-            background: linear-gradient(135deg, #0a84ff, #6c5ce7);
-            color: #fff;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        button:hover { transform: scale(1.02); }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .info-box {
-            background: rgba(10,132,255,0.1);
-            border: 1px solid rgba(10,132,255,0.2);
-            border-radius: 12px;
-            padding: 12px 16px;
-            margin-bottom: 16px;
-            font-size: 13px;
-            color: #aaa;
-        }
-        .info-box strong { color: #fff; }
-        .footer {
-            margin-top: 15px;
-            text-align: center;
-            font-size: 12px;
-            color: #555;
-        }
-        .badge {
-            display: inline-block;
-            background: rgba(10,132,255,0.15);
-            color: var(--primary);
-            padding: 2px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            margin-left: 8px;
-        }
+        body { background: #000; color: #fff; padding: 2rem; font-family: -apple-system, sans-serif; }
+        .app-container { background: rgba(30,30,32,0.8); backdrop-filter: blur(20px); border-radius: 24px; padding: 40px; max-width: 800px; margin: auto; }
+        textarea { width: 100%; height: 200px; background: #222; color: #fff; border: 1px solid #444; border-radius: 12px; padding: 15px; margin: 15px 0; }
+        .btn { background: #0a84ff; color: white; padding: 15px; border-radius: 12px; border: none; width: 100%; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn:hover { background: #0070e0; }
+        .instrucao { color: #86868b; font-size: 0.9rem; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>🤖 Assistente Especializado</h1>
-    <p class="subtitle">
-        Baseado no seu Gem personalizado 
-        <span class="badge">API Gemini</span>
-    </p>
-
-    <div class="info-box">
-        <strong>💡 Sobre este assistente:</strong> 
-        Ele foi configurado com as instruções do seu Gem. Faça perguntas sobre o tema!
-    </div>
-
-    <div id="chatBox" class="chat-box">
-        <div class="message ai">
-            👋 Olá! Eu sou o assistente baseado no seu Gem. Como posso ajudar você hoje?
-        </div>
-    </div>
-
-    <div class="input-group">
-        <input 
-            type="text" 
-            id="userInput" 
-            placeholder="Digite sua pergunta..."
-            onkeydown="if(event.key === 'Enter') enviarMensagem()"
-        >
-        <button id="sendBtn" onclick="enviarMensagem()">
-            <i class="fas fa-paper-plane"></i> Enviar
-        </button>
-    </div>
-    <div class="footer">
-        <i class="fas fa-shield-alt"></i> Respostas geradas por IA · Verifique informações importantes
-    </div>
+<div class="app-container">
+    <h1><i class="fas fa-film"></i> Roteiro de Filmagens</h1>
+    <p class="instrucao">Descreva o evento. O Gabinete 247 irá formatar o prompt profissional para o seu Agente Goblin AI.</p>
+    
+    <textarea id="prompt" placeholder="Ex: Preciso de um roteiro para um evento de ciclistas que sairá do Sinop até Curitiba..."></textarea>
+    
+    <button class="btn" onclick="prepararParaGoblin()">Copiar Prompt Profissional</button>
 </div>
 
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
 <script>
-    // ============================================
-    // CONFIGURAÇÃO DA API - CORRIGIDA
-    // ============================================
-    const API_KEY = 'AIzaSyAAilubAwWM2gueKdDk0FKi8dLtgs4oy8Q'; // 🔑 SUBSTITUA PELA SUA CHAVE
-    
-    // ✅ MODELOS VÁLIDOS (escolha um):
-    // - gemini-1.5-flash (mais rápido, RECOMENDADO)
-    // - gemini-1.5-pro (mais poderoso)
-    // - gemini-2.0-flash (versão mais recente estável)
-    const MODELO = 'gemini-1.5-flash'; // ← ALTERE AQUI SE QUISER
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODELO}:generateContent`;
+    function prepararParaGoblin() {
+        const descricao = document.getElementById('prompt').value;
+        if(!descricao) return alert("Por favor, descreva o evento!");
 
-    // ============================================
-    // INSTRUÇÕES DO SEU GEM (CULTOS E CURAS)
-    // ============================================
-    const GEM_CONTEXT = `
-    Você é um Diretor de Fotografia e Produtor Audiovisual Especialista na cobertura de eventos cristãos, corporativos e sociais. Seu objetivo é ajudar o usuário a transformar ideias e descrições de eventos em um "Roteiro de Filmagens" técnico, prático e inspirador para a equipe de vídeo e fotografia.
-
-
-
-Sempre que o usuário fornecer informações sobre um evento, você deve gerar uma Tabela Estruturada de Captação e orientações de direção. 
-
-
+        const systemPrompt = `Você é um Diretor de Fotografia e Produtor Audiovisual Especialista na cobertura de eventos cristãos, corporativos e sociais. Seu objetivo é ajudar o usuário a transformar ideias e descrições de eventos em um "Roteiro de Filmagens" técnico, prático e inspirador para a equipe de vídeo e fotografia. Sempre que o usuário fornecer informações sobre um evento, você deve gerar uma Tabela Estruturada de Captação e orientações de direção.
 
 # REGRAS E ESTRUTURA DO ROTEIRO
-
-
-
 Você deverá sempre estruturar sua resposta no seguinte formato, usando formatação em Markdown (Tabelas e Títulos):
 
-
-
 ## CABEÇALHO DO PROJETO
-
 * **ROTEIRO DE FILMAGENS**
-
 * **Evento:** [Nome do Evento]
-
 * **Local:** [Local]
-
 * **Data da Captação:** [Data]
-
-* **Objetivo Geral:** [Crie um objetivo geral inspirador de 2 linhas focado no que o vídeo final deve transmitir. Ex: Registrar de forma dinâmica e inspiradora...]
-
-
+* **Objetivo Geral:** [Crie um objetivo geral inspirador de 2 linhas focado no que o vídeo final deve transmitir.]
 
 ## TABELA DE CAPTAÇÃO
-
-Gere uma tabela com as seguintes colunas e preencha com as cenas do evento (de 5 a 15 cenas, dependendo da descrição do usuário):
-
-
-
 | CENA | CONTEÚDO | SUGESTÃO DE IMAGEM / REFERÊNCIA | ENQUADRAMENTOS / MOVIMENTOS | OBJETIVO |
-
 | :--- | :--- | :--- | :--- | :--- |
+| [Número] | [Título] | [O que focar visualmente] | [Sugira 3 itens técnicos: Ex: Plano Médio, Close, Travelling] | [Por que filmar isso?] |
 
-| [Número] | [Título da cena. Ex: CREDENCIAMENTO] | [Descreva o que a câmera deve focar visualmente] | [Sugira 3 itens técnicos. Ex: Plano Médio, Close, Travelling] | [Por que filmar isso? Ex: Mostrar organização] |
-
-
-
-*Nota técnica para a tabela:* Em "Enquadramentos / Movimentos", utilize termos técnicos reais de filmagem como: Plano Geral, Plano Médio, Plano Americano, Close (nos detalhes, no rosto, nas mãos), Travelling, Câmera na mão, Movimentos Suaves, Drone, etc.
-
-
+*Nota técnica para a tabela:* Utilize termos técnicos reais: Plano Geral, Plano Médio, Close, Travelling, Câmera na mão, Movimentos Suaves, Drone, etc.
 
 ## ORIENTAÇÕES GERAIS E DICA FINAL
+* **📸 ORIENTAÇÕES GERAIS:** Gere 4 bullet points técnicos (iluminação, áudio, postura, prioridade).
+* **🎬 DICA FINAL (STORYTELLING):** Uma frase forte para inspirar o videomaker sobre a história visual.
 
-Finalize o documento gerando estas duas seções:
+EVENTO A SER ROTEIRIZADO: ${descricao}`;
 
-
-
-* **📸 ORIENTAÇÕES GERAIS:** 
-
-Gere 4 *bullet points* com orientações técnicas para a equipe (iluminação, áudio, postura, prioridade de imagens). Ex: "Priorizar imagens que transmitam unidade e reverência...", "Captar áudio ambiente com qualidade...".
-
-
-
-* **🎬 DICA FINAL (STORYTELLING):**
-
-Uma frase forte para inspirar o videomaker sobre a história visual que ele deve contar na edição.
-
-
-
-# FLUXO DE CONVERSA
-
-1. Se o usuário fornecer apenas uma ideia básica (Ex: "Vou gravar um culto de jovens"), gere um Roteiro de Filmagem sugerido e completo, deduzindo os momentos principais (chegada, louvor, palavra, oração).
-
-2. Se o usuário listar palestrantes ou cantores específicos, inclua linhas dedicadas a eles na tabela com orientações de ângulos para captar a emoção e linguagem corporal deles.
-    `;
-
-    // ============================================
-    // FUNÇÃO PARA ENVIAR MENSAGEM
-    // ============================================
-    async function enviarMensagem() {
-        const input = document.getElementById('userInput');
-        const sendBtn = document.getElementById('sendBtn');
-        const chatBox = document.getElementById('chatBox');
-        const mensagem = input.value.trim();
-
-        if (!mensagem) return;
-
-        // Mostrar mensagem do usuário
-        adicionarMensagem('user', mensagem);
-        input.value = '';
-        sendBtn.disabled = true;
-        input.disabled = true;
-
-        // Mostrar indicador de loading
-        const loadingMsg = adicionarMensagem('ai', '⏳ Pensando...', true);
-
-        try {
-            const response = await fetch(`${API_URL}?key=${API_KEY}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [
-                        {
-                            parts: [
-                                { text: GEM_CONTEXT + '\n\nPergunta do usuário: ' + mensagem }
-                            ]
-                        }
-                    ]
-                })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error?.message || 'Erro ao chamar API');
-            }
-
-            const data = await response.json();
-            const resposta = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Desculpe, não entendi. Tente outra pergunta.';
-
-            // Remover loading e adicionar resposta
-            if (loadingMsg) loadingMsg.remove();
-            adicionarMensagem('ai', resposta);
-
-        } catch (error) {
-            console.error('Erro:', error);
-            if (loadingMsg) loadingMsg.remove();
-            adicionarMensagem('ai', `❌ Erro: ${error.message}. Verifique sua chave API.`);
-        }
-
-        sendBtn.disabled = false;
-        input.disabled = false;
-        input.focus();
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    // ============================================
-    // FUNÇÃO PARA ADICIONAR MENSAGEM NO CHAT
-    // ============================================
-    function adicionarMensagem(tipo, texto, isLoading = false) {
-        const chatBox = document.getElementById('chatBox');
-        const div = document.createElement('div');
-        div.className = `message ${tipo}`;
+        // Copia para a área de transferência
+        navigator.clipboard.writeText(systemPrompt);
         
-        if (isLoading) {
-            div.innerHTML = `<span class="loading"></span><span class="loading"></span><span class="loading"></span>`;
-        } else {
-            div.textContent = texto;
-        }
-        
-        chatBox.appendChild(div);
-        chatBox.scrollTop = chatBox.scrollHeight;
-        return div;
+        alert("Prompt copiado com sucesso! Agora abra o Goblin AI, cole o prompt e envie.");
+        window.open("https://goblin.tools/", "_blank"); // Ou a URL direta do seu agente
     }
-
-    // ============================================
-    // CARREGAR INTRODUÇÃO PERSONALIZADA
-    // ============================================
-    async function carregarGemInicial() {
-        const chatBox = document.getElementById('chatBox');
-        const msg = document.createElement('div');
-        msg.className = 'message ai';
-        msg.textContent = '📚 Carregando conhecimento do Gem...';
-        chatBox.appendChild(msg);
-
-        try {
-            const response = await fetch(`${API_URL}?key=${API_KEY}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [
-                        {
-                            parts: [
-                                { text: GEM_CONTEXT + '\n\nFaça uma introdução curta e acolhedora sobre você e como pode ajudar no contexto de cultos e curas.' }
-                            ]
-                        }
-                    ]
-                })
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                const resposta = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (resposta) {
-                    msg.textContent = '🙏 ' + resposta;
-                }
-            }
-        } catch (error) {
-            console.warn('Erro ao carregar introdução:', error);
-            msg.textContent = '🙏 Olá! Sou seu assistente para cultos de curas. Como posso ajudar sua ministração hoje?';
-        }
-    }
-
-    // Inicializar ao carregar a página
-    document.addEventListener('DOMContentLoaded', () => {
-        carregarGemInicial();
-    });
 </script>
-
 </body>
 </html>
