@@ -2,89 +2,46 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Roteiro de Filmagens - Gabinete 247</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Gerador Inteligente · Gabinete 247</title>
     <style>
-        :root { --brand-green: #113826; --accent-color: #0a84ff; }
-        body { background: #000; color: #fff; padding: 2rem; font-family: -apple-system, sans-serif; }
-        .app-container { background: rgba(30,30,32,0.8); backdrop-filter: blur(20px); border-radius: 24px; padding: 40px; max-width: 950px; margin: auto; }
-        textarea { width: 100%; height: 120px; background: #222; color: #fff; padding: 15px; border-radius: 12px; border: 1px solid #444; margin: 10px 0; }
-        .btn { background: var(--accent-color); color: white; padding: 15px 25px; border-radius: 12px; border: none; cursor: pointer; font-weight: bold; width: 100%; }
-        #script-sheet { background: #fff; color: #333; width: 850px; margin: 20px auto; padding: 40px; border-radius: 4px; }
-        .table-title { background: var(--brand-green); color: white; text-align: center; padding: 10px; font-weight: bold; margin: 15px 0; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: var(--brand-green); color: white; padding: 10px; font-size: 12px; }
-        td { border: 1px solid #ddd; padding: 10px; vertical-align: top; font-size: 13px; }
-        .ai-image { width: 100%; height: 100px; object-fit: cover; border-radius: 4px; }
-        .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--accent-color); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 10px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        body { background: #000; color: #fff; padding: 2rem; font-family: sans-serif; }
+        .container { max-width: 800px; margin: auto; background: #1a1a1a; padding: 30px; border-radius: 20px; }
+        textarea { width: 100%; height: 150px; background: #222; color: #fff; border: 1px solid #444; border-radius: 12px; padding: 15px; margin: 15px 0; }
+        .btn { background: #0a84ff; color: white; padding: 15px; border-radius: 12px; border: none; width: 100%; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <h1>Gerador de Roteiros IA</h1>
-    <p>Descreva o evento e a IA gerará o roteiro técnico.</p>
-    <textarea id="prompt" placeholder="Ex: Roteiro para cobertura cinematográfica de um culto de jovens em Cuiabá..."></textarea>
-    <button class="btn" onclick="gerarRoteiro()">Gerar Roteiro e Imagens</button>
-
-    <div id="loader" style="display:none; text-align:center; padding:20px;">
-        <div class="spinner"></div> 
-        <p>Consultando IA...</p>
-    </div>
-
-    <div id="script-sheet">
-        <h1 style="color:var(--brand-green); text-align: center;">ROTEIRO DE FILMAGENS</h1>
-        <div class="table-title">CAPTAÇÕES E CENAS</div>
-        <table id="tabela-cenas">
-            <thead>
-                <tr><th>CENA</th><th>CONTEÚDO</th><th>REF. IA</th><th>MOVIMENTOS</th><th>OBJETIVO</th></tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
+<div class="container">
+    <h1>Roteiro Inteligente</h1>
+    <p>Descreva o evento. O Gabinete 247 enviará os detalhes para o seu Agente Gemini.</p>
+    
+    <textarea id="descricao" placeholder="Ex: Roteiro para o evento EBO 52 em Cuiabá..."></textarea>
+    
+    <!-- Este botão dispara a instrução para o seu Agente -->
+    <button class="btn" onclick="enviarParaAgente()">Enviar para o Agente Gemini</button>
 </div>
 
 <script>
-    async function gerarRoteiro() {
-        const prompt = document.getElementById('prompt').value;
-        const loader = document.getElementById('loader');
-        if(!prompt) return alert("Descreva o evento!");
+    function enviarParaAgente() {
+        const descricao = document.getElementById('descricao').value;
+        if(!descricao) return alert("Descreva o evento!");
+
+        // Instrução técnica para o agente
+        const promptTecnico = `Aja como meu Diretor de Fotografia. 
+        Crie um roteiro de filmagem detalhado para: ${descricao}.
+        Entregue em formato de tabela com colunas: CENA, CONTEÚDO, SUGESTÃO DE IMAGEM (com prompt detalhado para IA), MOVIMENTOS DE CÂMERA, OBJETIVO.
+        Ao final, gere as imagens solicitadas.`;
+
+        // Aqui está o "pulo do gato": 
+        // Se o seu Agente Gemini estiver em uma URL específica, nós o abrimos 
+        // ou enviamos a mensagem via postMessage se o iframe for seu.
         
-        loader.style.display = 'block';
-
-        const fullPrompt = `Crie um roteiro de filmagens de 4 cenas para: "${prompt}". Responda estritamente com um array JSON válido contendo objetos com estas chaves: "cena", "conteudo", "prompt", "mov", "obj". Não escreva nenhum texto fora do array JSON.`;
-        const url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}`;
-
-        try {
-            const response = await fetch(url);
-            let texto = await response.text();
-            
-            // Filtra o JSON de forma segura mesmo se a IA incluir texto extra
-            const start = texto.indexOf('[');
-            const end = texto.lastIndexOf(']') + 1;
-            const cenas = JSON.parse(texto.substring(start, end));
-
-            const tbody = document.querySelector('#tabela-cenas tbody');
-            tbody.innerHTML = '';
-
-            cenas.forEach(c => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="text-align:center; font-weight:bold;">${c.cena || '-'}</td>
-                    <td>${c.conteudo || '-'}</td>
-                    <td><img class="ai-image" src="https://image.pollinations.ai/prompt/${encodeURIComponent(c.prompt || 'cinematic photography')}?width=400&height=250&nologo=true"></td>
-                    <td>${(c.mov || '').replace(/\n/g, '<br>')}</td>
-                    <td>${c.obj || '-'}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-            loader.style.display = 'none';
-        } catch(e) {
-            console.error("Erro na geração:", e);
-            alert("A IA retornou um formato inesperado. Tente clicar em gerar novamente.");
-            loader.style.display = 'none';
-        }
+        // Exemplo: abrindo o agente numa nova aba com o prompt pronto (substitua pela sua URL)
+        const urlAgente = "https://aistudio.google.com/app/prompts/new_chat"; // Ou seu agente customizado
+        window.open(urlAgente, '_blank');
+        
+        alert("Instrução técnica montada! Cole o texto abaixo no seu Agente:\n\n" + promptTecnico);
     }
 </script>
 </body>
