@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roteiro de Filmagens - Gabinete 247</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        /* === ESTILOS DO APP (DARK MODE) === */
+        :root {
+            --bg-color: transparent;
+            --glass-bg: rgba(30, 30, 32, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --accent-color: #0a84ff;
+            --accent-glow: rgba(10, 132, 255, 0.5);
+            --brand-green: #113826; /* Verde escuro da referência */
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+        body {
+            background-color: transparent;
+            color: #ffffff;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) { .controls { grid-template-columns: 1fr; } }
+
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
+        .input-group label { font-size: 14px; color: #a0a0a5; font-weight: 600; }
+        
+        textarea, input[type="text"], input[type="password"] {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+            transition: border 0.2s;
+        }
+        textarea:focus, input:focus { border-color: var(--accent-color); }
+        textarea { resize: vertical; min-height: 120px; }
+
+        .btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px var(--accent-glow);
+            transition: transform 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-secondary { background: rgba(255,255,255,0.1); box-shadow: none; border: 1px solid rgba(255,255,255,0.2); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.15); }
+
+        /* === ESTILOS DO ROTEIRO (FOLHA BRANCA ESTILO IMPRESSÃO) === */
+        .script-canvas-wrapper {
+            overflow-x: auto;
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 16px;
+        }
+
+        .script-sheet {
+            background: #ffffff;
+            color: #333333;
+            width: 900px; /* Largura fixa para manter proporção de impressão */
+            margin: 0 auto;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .sheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .sheet-title h1 { color: var(--brand-green); font-size: 38px; font-weight: 900; letter-spacing: -1px; line-height: 1; }
+        .sheet-title h2 { color: #555; font-size: 18px; font-weight: 500; margin-top: 5px; }
+
+        .sheet-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .meta-box { display: flex; align-items: flex-start; gap: 10px; }
+        .meta-box i { color: var(--brand-green); font-size: 18px; margin-top: 2px; }
+
+        .objective-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .obj-tag {
+            background: var(--brand-green);
+            color: white;
+            padding: 6px 12px;
+            font-weight: bold;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .obj-text { font-size: 13px; line-height: 1.4; flex: 1; }
+
+        .date-box {
+            border: 2px solid var(--brand-green);
+            border-radius: 8px;
+            padding: 8px 15px;
+            text-align: center;
+        }
+        .date-box span { display: block; font-size: 10px; font-weight: bold; color: var(--brand-green); }
+        .date-box strong { font-size: 20px; color: #333; }
+
+        .table-title {
+            background: var(--brand-green);
+            color: white;
+            text-align: center;
+            padding: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        /* Tabela principal */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th { background: var(--brand-green); color: white; font-size: 12px; padding: 10px; text-align: center; font-weight: 600; border: 1px solid white; }
+        td { border: 1px solid #ddd; padding: 15px 10px; vertical-align: middle; }
+        
+        .col-cena { width: 80px; text-align: center; }
+        .col-cena h3 { font-size: 32px; color: var(--brand-green); margin-bottom: 5px; }
+        .col-cena i { font-size: 24px; color: #555; }
+
+        .col-conteudo { width: 140px; text-align: center; font-weight: bold; font-size: 14px; text-transform: uppercase; }
+
+        .col-imagem { width: 220px; padding: 0 !important; }
+        .ai-image-grid { display: flex; flex-direction: column; gap: 2px; height: 100%; }
+        .ai-image-grid img { width: 100%; height: 120px; object-fit: cover; }
+
+        .col-movimentos { width: 220px; font-size: 12px; }
+        .col-movimentos ul { list-style: none; padding-left: 10px; }
+        .col-movimentos li { margin-bottom: 8px; position: relative; }
+        .col-movimentos li::before { content: "•"; color: var(--brand-green); font-weight: bold; position: absolute; left: -10px; }
+
+        .col-objetivo { text-align: center; font-size: 12px; padding: 15px!important; }
+        .col-objetivo i { font-size: 24px; color: #777; margin-bottom: 10px; display: block; }
+
+        .footer-info {
+            display: flex;
+            border-top: 2px solid var(--brand-green);
+            padding-top: 15px;
+            gap: 20px;
+        }
+
+        .footer-info > div { flex: 1; }
+        .footer-info h4 { font-size: 12px; color: var(--brand-green); margin-bottom: 8px; text-transform: uppercase; }
+        .footer-info ul { font-size: 11px; padding-left: 15px; color: #444; }
+        .footer-info ul li { margin-bottom: 4px; }
+        
+        .dica-box { display: flex; gap: 10px; align-items: flex-start; }
+        .dica-box i { font-size: 24px; color: var(--brand-green); }
+        .dica-box p { font-size: 11px; color: #444; line-height: 1.4; }
+
+        /* Loader */
+        .loader { display: none; text-align: center; padding: 40px; color: var(--accent-color); font-weight: bold; }
+        .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--accent-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <div class="controls">
+            <!-- Painel de Prompt -->
+            <div class="input-group">
+                <label><i class="fas fa-magic"></i> Descreva o evento ou vídeo</label>
+                <textarea id="promptInput" placeholder="Ex: Preciso de um roteiro para a cobertura fotográfica e de vídeo de um culto de jovens chamado 'Desperta'. O evento será em Cuiabá, Mato Grosso. Quero takes dinâmicos da banda, do pregador e da adoração..."></textarea>
+                <button class="btn" onclick="gerarRoteiro()"><i class="fas fa-bolt"></i> Gerar Roteiro com IA</button>
+            </div>
+
+            <!-- Painel de Configurações -->
+            <div class="input-group" style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 16px;">
+                <label><i class="fas fa-key"></i> Chave API do Google Gemini</label>
+                <input type="password" id="apiKeyInput" placeholder="Cole sua chave API aqui...">
+                <p style="font-size: 11px; color: #888; margin-top: 5px;">Sua chave fica salva apenas no seu navegador. <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--accent-color);">Pegue uma grátis aqui</a>.</p>
+                
+                <button class="btn btn-secondary" onclick="baixarImagem()" style="margin-top: auto;">
+                    <i class="fas fa-download"></i> Baixar Roteiro em JPG
+                </button>
+            </div>
+        </div>
+
+        <div id="loader" class="loader">
+            <div class="spinner"></div>
+            Processando o roteiro e gerando imagens IA...
+        </div>
+
+        <!-- O ROTEIRO (Visão de Impressão) -->
+        <div class="script-canvas-wrapper">
+            <div class="script-sheet" id="script-sheet">
+                
+                <div class="sheet-header">
+                    <div class="sheet-title">
+                        <h1>ROTEIRO DE FILMAGENS</h1>
+                        <h2 id="out-evento" contenteditable="true">COBERTURA OFICIAL DO EVENTO</h2>
+                    </div>
+                </div>
+
+                <div class="sheet-meta">
+                    <div class="meta-box">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <strong style="font-size: 12px; color: #777;">LOCAL:</strong><br>
+                            <span id="out-local" style="font-weight: 600;" contenteditable="true">Definir local do evento</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 20px;">
+                    <div class="objective-bar">
+                        <div class="obj-tag">OBJETIVO GERAL:</div>
+                        <div class="obj-text" id="out-objetivo" contenteditable="true">
+                            Registrar de forma dinâmica os momentos principais, transmitindo a essência do evento.
+                        </div>
+                    </div>
+                    <div class="date-box">
+                        <span>CAPTAÇÃO:</span>
+                        <strong id="out-data" contenteditable="true">XX/XX</strong>
+                    </div>
+                </div>
+
+                <div class="table-title">CAPTAÇÕES NA ÍNTEGRA E CENAS PRINCIPAIS</div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>CENA</th>
+                            <th>CONTEÚDO</th>
+                            <th>IMAGEM / REFERÊNCIA (IA)</th>
+                            <th>ENQUADRAMENTOS / MOVIMENTOS</th>
+                            <th>OBJETIVO</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-cenas">
+                        <!-- O Javascript vai injetar as linhas aqui -->
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 40px; color: #888;">
+                                <i>Preencha a descrição acima e clique em "Gerar Roteiro"</i>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="footer-info">
+                    <div>
+                        <h4><i class="fas fa-camera"></i> Orientações Gerais:</h4>
+                        <ul id="out-orientacoes" contenteditable="true">
+                            <li>Priorizar imagens que transmitam a essência do local.</li>
+                            <li>Captar áudio ambiente de qualidade.</li>
+                            <li>Usar iluminação natural reforçando com luzes de apoio.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="dica-box">
+                            <i class="fas fa-film"></i>
+                            <div>
+                                <h4 style="margin-bottom: 4px;">Dica Final:</h4>
+                                <p id="out-dica" contenteditable="true">Contar uma história visual que inspire e edifique quem for assistir ao material editado.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SDK do Google Gemini via Module -->
+    <script type="importmap">
+        { "imports": { "@google/generative-ai": "https://esm.run/@google/generative-ai" } }
+    </script>
+    <script type="module">
+        import { GoogleGenerativeAI } from "@google/generative-ai";
+
+        // Salvar e carregar chave API
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        if(localStorage.getItem('geminiKey')) { apiKeyInput.value = localStorage.getItem('geminiKey'); }
+        apiKeyInput.addEventListener('input', () => localStorage.setItem('geminiKey', apiKeyInput.value));
+
+        window.gerarRoteiro = async function() {
+            const apiKey = apiKeyInput.value.trim();
+            const prompt = document.getElementById('promptInput').value.trim();
+
+            if(!apiKey) return alert("Por favor, insira sua chave da API Gemini.");
+            if(!prompt) return alert("Por favor, descreva o evento.");
+
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('script-sheet').style.opacity = '0.5';
+
+            try {
+                const genAI = new GoogleGenerativeAI(apiKey);
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+                // Engenharia de Prompt para forçar um JSON perfeito
+                const systemPrompt = `
+Você é um diretor de fotografia profissional. Crie um roteiro de filmagens técnico baseado na solicitação abaixo.
+Responda APENAS com um objeto JSON válido, sem formatação Markdown, usando a estrutura exata abaixo:
+{
+  "evento": "NOME DO EVENTO",
+  "local": "Nome do local (invente um genérico em Cuiabá se não for fornecido)",
+  "objetivoGeral": "Resumo de 2 linhas do objetivo",
+  "data": "DD/MM",
+  "cenas": [
+    {
+      "icone": "fa-users", 
+      "conteudo": "Nome curto",
+      "promptImagem": "cinematic shot of [subject], highly detailed, 4k",
+      "enquadramentos": ["Plano XYZ", "Movimento XYZ"],
+      "objetivo": "Por que gravar isso?"
+    }
+  ],
+  "orientacoes": ["Dica 1", "Dica 2", "Dica 3"],
+  "dicaFinal": "Dica de ouro"
+}
+O array "cenas" deve ter entre 4 e 6 cenas. Escolha nomes de ícones do FontAwesome (ex: fa-camera, fa-music, fa-church, fa-microphone). O "promptImagem" deve ser em INGLÊS, focando em fotografia.
+Solicitação: ${prompt}
+`;
+
+                const result = await model.generateContent(systemPrompt);
+                const responseText = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
+                const dados = JSON.parse(responseText);
+
+                renderizarRoteiro(dados);
+
+            } catch(e) {
+                alert("Erro ao processar a IA. Verifique sua Chave API ou tente novamente. Detalhes no console.");
+                console.error(e);
+            } finally {
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('script-sheet').style.opacity = '1';
+            }
+        };
+
+        function renderizarRoteiro(dados) {
+            document.getElementById('out-evento').innerText = dados.evento;
+            document.getElementById('out-local').innerText = dados.local;
+            document.getElementById('out-objetivo').innerText = dados.objetivoGeral;
+            document.getElementById('out-data').innerText = dados.data;
+            document.getElementById('out-dica').innerText = dados.dicaFinal;
+
+            const orientacoesHtml = dados.orientacoes.map(o => `<li>${o}</li>`).join('');
+            document.getElementById('out-orientacoes').innerHTML = orientacoesHtml;
+
+            const tbody = document.getElementById('tabela-cenas');
+            tbody.innerHTML = '';
+
+            dados.cenas.forEach((cena, index) => {
+                const enquadramentosHtml = cena.enquadramentos.map(e => `<li>${e}</li>`).join('');
+                
+                // Mágica para gerar imagens na hora baseadas no prompt retornado pela IA usando o Pollinations AI
+                const encodedPrompt = encodeURIComponent(cena.promptImagem);
+                const imgUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=400&height=250&nologo=true`;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="col-cena">
+                        <h3>${index + 1}</h3>
+                        <i class="fas ${cena.icone}"></i>
+                    </td>
+                    <td class="col-conteudo" contenteditable="true">${cena.conteudo}</td>
+                    <td class="col-imagem">
+                        <div class="ai-image-grid">
+                            <img src="${imgUrl}" alt="Referência IA">
+                        </div>
+                    </td>
+                    <td class="col-movimentos">
+                        <ul contenteditable="true">${enquadramentosHtml}</ul>
+                    </td>
+                    <td class="col-objetivo">
+                        <i class="far fa-clipboard"></i>
+                        <p contenteditable="true">${cena.objetivo}</p>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Função para exportar a div como Imagem (JPG)
+        window.baixarImagem = function() {
+            const sheet = document.getElementById('script-sheet');
+            html2canvas(sheet, { scale: 2, useCORS: true }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'Roteiro_Gabinete247.jpg';
+                link.href = canvas.toDataURL('image/jpeg', 0.9);
+                link.click();
+            });
+        };
+    </script>
+</body>
+</html>
