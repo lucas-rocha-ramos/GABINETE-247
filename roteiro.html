@@ -6,11 +6,14 @@
     <title>Roteiro de Filmagens - Gabinete 247</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Carregando Transformers.js da versão estável -->
     <script type="module">
         import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.16.0';
         env.allowLocalModels = false;
         window.pipeline = pipeline;
     </script>
+
     <style>
         :root { --brand-green: #113826; --accent-color: #0a84ff; }
         body { background: #000; color: #fff; padding: 2rem; font-family: -apple-system, sans-serif; }
@@ -22,7 +25,7 @@
         table { width: 100%; border-collapse: collapse; }
         th { background: var(--brand-green); color: white; padding: 10px; font-size: 12px; }
         td { border: 1px solid #ddd; padding: 10px; vertical-align: top; font-size: 13px; }
-        .ai-image { width: 100%; height: 100px; object-fit: cover; }
+        .ai-image { width: 100%; height: 100px; object-fit: cover; border-radius: 4px; }
         .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--accent-color); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -31,8 +34,8 @@
 
 <div class="app-container">
     <h1>Gerador de Roteiros IA</h1>
-    <p>Use IA local para criar seu roteiro técnico sem custos.</p>
-    <textarea id="prompt" placeholder="Ex: Roteiro para cobertura de um evento esportivo de ciclistas saindo de Sinop até Curitiba..."></textarea>
+    <p>Use IA local para criar seu roteiro técnico.</p>
+    <textarea id="prompt" placeholder="Ex: Roteiro para cobertura de um evento esportivo de ciclistas..."></textarea>
     <button class="btn" onclick="gerarTudo()">Gerar Roteiro e Imagens</button>
 
     <div id="loader" style="display:none; text-align:center; padding:20px;">
@@ -60,24 +63,24 @@
         const loader = document.getElementById('loader');
         const status = document.getElementById('status');
         
-        if(!prompt) return alert("Descreva o evento primeiro!");
-        
+        if(!prompt) return alert("Descreva o evento!");
         loader.style.display = 'block';
         
         try {
             if (!generator) {
-                // Modelo otimizado para navegador via onnx-community
-                generator = await window.pipeline('text-generation', 'onnx-community/Qwen2.5-0.5B-Instruct');
+                // Modelo Flan-T5-Small: Altamente estável, pequeno e sem erro de subpastas
+                status.innerText = "Baixando IA (aguarde)...";
+                generator = await window.pipeline('text2text-generation', 'Xenova/flan-t5-small');
             }
             
             status.innerText = "Criando roteiro...";
             
-            const fullPrompt = `Crie um roteiro de 4 cenas para: ${prompt}. Responda estritamente em formato JSON: [{"cena":1, "conteudo":"...", "prompt":"...", "mov":"...", "obj":"..."}]. Sem explicações adicionais.`;
+            const fullPrompt = `Create a film script table for: ${prompt}. Return a JSON array: [{"cena":1, "conteudo":"Short description", "prompt":"Photography prompt", "mov":"Camera movement", "obj":"Goal"}].`;
             
             const res = await generator(fullPrompt, { max_new_tokens: 500 });
             let texto = res[0].generated_text;
             
-            // Limpa o texto para extrair apenas o JSON
+            // Extração segura do JSON
             const jsonPart = texto.substring(texto.indexOf('['), texto.lastIndexOf(']') + 1);
             const cenas = JSON.parse(jsonPart);
 
@@ -98,7 +101,7 @@
             loader.style.display = 'none';
         } catch(e) {
             console.error(e);
-            alert("Erro ao processar IA. Tente novamente.");
+            alert("Erro na IA. O modelo carregou? Verifique se está em uma aba privada ou veja o console (F12).");
             loader.style.display = 'none';
         }
     }
