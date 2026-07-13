@@ -2,62 +2,79 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Gerador de Roteiro · GABINETE 247</title>
+    <title>Gerador de Roteiros Profissional - Gabinete 247</title>
     <style>
+        :root { --brand-green: #113826; }
         body { background: #000; color: #fff; padding: 2rem; font-family: -apple-system, sans-serif; }
-        .app-container { background: rgba(30,30,32,0.8); backdrop-filter: blur(20px); border-radius: 24px; padding: 40px; max-width: 800px; margin: auto; }
-        textarea { width: 100%; height: 200px; background: #222; color: #fff; border: 1px solid #444; border-radius: 12px; padding: 15px; margin: 15px 0; }
-        .btn { background: #0a84ff; color: white; padding: 15px; border-radius: 12px; border: none; width: 100%; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn:hover { background: #0070e0; }
-        .instrucao { color: #86868b; font-size: 0.9rem; margin-bottom: 10px; }
+        .app-container { background: rgba(30,30,32,0.8); backdrop-filter: blur(20px); border-radius: 24px; padding: 40px; max-width: 950px; margin: auto; }
+        textarea { width: 100%; height: 150px; background: #222; color: #fff; border: 1px solid #444; border-radius: 12px; padding: 15px; margin: 15px 0; }
+        .btn { background: #0a84ff; color: white; padding: 15px; border-radius: 12px; border: none; width: 100%; font-weight: bold; cursor: pointer; }
+        
+        /* Área de exibição do Roteiro Markdown */
+        #roteiro-output { 
+            background: #fff; color: #333; padding: 40px; border-radius: 4px; margin-top: 30px; line-height: 1.6;
+        }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { background: var(--brand-green); color: white; padding: 10px; font-size: 12px; }
+        td { border: 1px solid #ddd; padding: 10px; font-size: 13px; }
+        h1, h2 { color: var(--brand-green); }
+        .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--accent-color); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 10px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <h1><i class="fas fa-film"></i> Roteiro de Filmagens</h1>
-    <p class="instrucao">Descreva o evento. O Gabinete 247 irá formatar o prompt profissional para o seu Agente Goblin AI.</p>
-    
-    <textarea id="prompt" placeholder="Ex: Preciso de um roteiro para um evento de ciclistas que sairá do Sinop até Curitiba..."></textarea>
-    
-    <button class="btn" onclick="prepararParaGoblin()">Copiar Prompt Profissional</button>
+    <h1>Gerador de Roteiros Profissional</h1>
+    <textarea id="prompt" placeholder="Descreva o evento (ex: Culto de jovens 'Desperta' em Cuiabá...)"></textarea>
+    <button class="btn" onclick="gerarRoteiro()">Gerar Roteiro Técnico</button>
+
+    <div id="loader" style="display:none; text-align:center;"><div class="spinner"></div></div>
+    <div id="roteiro-output"></div>
 </div>
 
 <script>
-    function prepararParaGoblin() {
-        const descricao = document.getElementById('prompt').value;
-        if(!descricao) return alert("Por favor, descreva o evento!");
-
-        const systemPrompt = `Você é um Diretor de Fotografia e Produtor Audiovisual Especialista na cobertura de eventos cristãos, corporativos e sociais. Seu objetivo é ajudar o usuário a transformar ideias e descrições de eventos em um "Roteiro de Filmagens" técnico, prático e inspirador para a equipe de vídeo e fotografia. Sempre que o usuário fornecer informações sobre um evento, você deve gerar uma Tabela Estruturada de Captação e orientações de direção.
-
-# REGRAS E ESTRUTURA DO ROTEIRO
-Você deverá sempre estruturar sua resposta no seguinte formato, usando formatação em Markdown (Tabelas e Títulos):
-
-## CABEÇALHO DO PROJETO
-* **ROTEIRO DE FILMAGENS**
-* **Evento:** [Nome do Evento]
-* **Local:** [Local]
-* **Data da Captação:** [Data]
-* **Objetivo Geral:** [Crie um objetivo geral inspirador de 2 linhas focado no que o vídeo final deve transmitir.]
-
-## TABELA DE CAPTAÇÃO
-| CENA | CONTEÚDO | SUGESTÃO DE IMAGEM / REFERÊNCIA | ENQUADRAMENTOS / MOVIMENTOS | OBJETIVO |
-| :--- | :--- | :--- | :--- | :--- |
-| [Número] | [Título] | [O que focar visualmente] | [Sugira 3 itens técnicos: Ex: Plano Médio, Close, Travelling] | [Por que filmar isso?] |
-
-*Nota técnica para a tabela:* Utilize termos técnicos reais: Plano Geral, Plano Médio, Close, Travelling, Câmera na mão, Movimentos Suaves, Drone, etc.
-
-## ORIENTAÇÕES GERAIS E DICA FINAL
-* **📸 ORIENTAÇÕES GERAIS:** Gere 4 bullet points técnicos (iluminação, áudio, postura, prioridade).
-* **🎬 DICA FINAL (STORYTELLING):** Uma frase forte para inspirar o videomaker sobre a história visual.
-
-EVENTO A SER ROTEIRIZADO: ${descricao}`;
-
-        // Copia para a área de transferência
-        navigator.clipboard.writeText(systemPrompt);
+    async function gerarRoteiro() {
+        const input = document.getElementById('prompt').value;
+        if(!input) return alert("Descreva o evento!");
         
-        alert("Prompt copiado com sucesso! Agora abra o Goblin AI, cole o prompt e envie.");
-        window.open("https://goblin.tools/", "_blank"); // Ou a URL direta do seu agente
+        document.getElementById('loader').style.display = 'block';
+        
+        // System Prompt Integrado
+        const systemPrompt = `Você é um Diretor de Fotografia especialista em eventos. Crie um roteiro para: ${input}. Estrutura obrigatória: CABEÇALHO DO PROJETO (com Evento, Local, Data, Objetivo), TABELA DE CAPTAÇÃO (Colunas: CENA, CONTEÚDO, SUGESTÃO DE IMAGEM, ENQUADRAMENTOS/MOVIMENTOS, OBJETIVO), ORIENTAÇÕES GERAIS (4 bullets), e DICA FINAL. Use Markdown para a tabela.`;
+
+        // Chamada direta para a API de texto da Pollinations
+        const url = `https://text.pollinations.ai/${encodeURIComponent(systemPrompt)}?model=openai`;
+
+        try {
+            const response = await fetch(url);
+            let texto = await response.text();
+
+            // Renderiza o Markdown (simples)
+            document.getElementById('roteiro-output').innerHTML = formatarMarkdown(texto);
+            document.getElementById('loader').style.display = 'none';
+        } catch(e) {
+            alert("Erro na geração.");
+            document.getElementById('loader').style.display = 'none';
+        }
+    }
+
+    // Função simples para converter Markdown em HTML
+    function formatarMarkdown(text) {
+        let html = text
+            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+            .replace(/\*\*(.*)\*\*/gim, '<b>$1</b>')
+            .replace(/\| (.*) \| (.*) \| (.*) \| (.*) \| (.*) \|/gim, (match, p1, p2, p3, p4, p5) => {
+                if(p1.includes('---')) return '';
+                return `<tr><td>${p1}</td><td>${p2}</td><td>${p3}</td><td>${p4}</td><td>${p5}</td></tr>`;
+            });
+        
+        // Envolve a tabela
+        if(html.includes('<tr>')) html = html.replace(/<tr>/, '<table><thead><tr>').replace(/<\/tr>/, '</tr></thead><tbody><tr>');
+        
+        return html;
     }
 </script>
 </body>
