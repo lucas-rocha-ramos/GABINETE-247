@@ -1,149 +1,458 @@
-<script>
-    // Configuração das Partículas (Mantida igual para o efeito visual)
-    const canvas = document.getElementById('particles');
-    const ctx = canvas.getContext('2d');
-    let particlesArray;
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuralSync™ Audio - Transcrição IA</title>
+    <style>
+        /* Variáveis de estilo iOS 26 / Futuristic Apple */
+        :root {
+            --bg-color: #000000;
+            --glass-bg: rgba(30, 30, 32, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a5;
+            --accent-color: #0a84ff;
+            --accent-glow: rgba(10, 132, 255, 0.5);
+            --timestamp-color: #32d74b;
+        }
 
-    function initParticles() {
-        canvas.width = document.getElementById('main-panel').offsetWidth;
-        canvas.height = document.getElementById('main-panel').offsetHeight;
-        particlesArray = [];
-        let numberOfParticles = (canvas.width * canvas.height) / 6000;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            /* Fundo com gradiente animado estilo iOS */
+            background: radial-gradient(circle at 15% 50%, rgba(72, 49, 157, 0.4), transparent 50%),
+                        radial-gradient(circle at 85% 30%, rgba(10, 132, 255, 0.3), transparent 50%),
+                        #000000;
+            background-attachment: fixed;
+        }
+
+        /* Container Principal com Efeito de Vidro */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border);
+            border-radius: 36px;
+            width: 90%;
+            max-width: 800px;
+            min-height: 500px;
+            padding: 40px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* Cabeçalho */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #fff, #a0a0a5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            margin-top: 8px;
+        }
+
+        /* Área de Upload */
+        #upload-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 60px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #upload-section:hover {
+            border-color: var(--accent-color);
+            background: rgba(10, 132, 255, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .upload-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 20px;
+            cursor: pointer;
+            box-shadow: 0 8px 24px var(--accent-glow);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .upload-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* Área de Processamento (Partículas) */
+        #processing-section {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .processing-text {
+            position: relative;
+            z-index: 1;
+            font-size: 18px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; text-shadow: 0 0 15px rgba(255,255,255,0.5); }
+            100% { opacity: 0.6; }
+        }
+
+        /* Área de Resultado da Transcrição */
+        #result-section {
+            display: none;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .transcription-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 24px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* Custom Scrollbar estilo Apple */
+        .transcription-box::-webkit-scrollbar {
+            width: 8px;
+        }
+        .transcription-box::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .transcription-box::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+        }
+
+        .speech-block {
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .meta-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .timestamp {
+            color: var(--timestamp-color);
+            font-family: "SF Mono", monospace;
+            font-weight: 500;
+            background: rgba(50, 215, 75, 0.1);
+            padding: 2px 8px;
+            border-radius: 8px;
+        }
+
+        .speaker {
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+
+        .text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            padding-left: 10px;
+            border-left: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 24px;
+            gap: 12px;
+        }
+
+        .btn {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 10px 24px;
+            border-radius: 16px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: #007aff;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glass-panel" id="main-panel">
+        <canvas id="particles"></canvas>
         
-        for (let i = 0; i < numberOfParticles; i++) {
-            let size = (Math.random() * 2) + 1;
-            let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
-            let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
-            let directionX = (Math.random() * 2) - 1;
-            let directionY = (Math.random() * 2) - 1;
-            let color = '#0a84ff';
-            particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
-        }
-    }
+        <div class="header">
+            <h1>NeuralSync™ Audio</h1>
+            <p>Transcrição avançada com mapeamento de contexto</p>
+        </div>
 
-    class Particle {
-        constructor(x, y, directionX, directionY, size, color) {
-            this.x = x; this.y = y; this.directionX = directionX; this.directionY = directionY; this.size = size; this.color = color;
-        }
-        draw() {
-            ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); ctx.fillStyle = '#ffffff'; ctx.fill();
-        }
-        update() {
-            if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX;
-            if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY;
-            this.x += this.directionX; this.y += this.directionY; this.draw();
-        }
-    }
+        <!-- Seção de Upload -->
+        <div id="upload-section">
+            <div class="upload-icon">🎙️</div>
+            <h3>Toque ou arraste seu arquivo</h3>
+            <p style="color: var(--text-secondary); margin-top: 8px; font-size: 14px;">MP4, MP3, WAV, MOV (Max 25MB pela API da OpenAI)</p>
+            <button class="upload-btn">Selecionar Arquivo</button>
+        </div>
 
-    function connect() {
-        let opacityValue = 1;
-        for (let a = 0; a < particlesArray.length; a++) {
-            for (let b = a; b < particlesArray.length; b++) {
-                let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) + 
-                               ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
-                if (distance < (canvas.width / 7) * (canvas.height / 7)) {
-                    opacityValue = 1 - (distance / 10000);
-                    ctx.strokeStyle = 'rgba(10, 132, 255,' + opacityValue + ')';
-                    ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(particlesArray[a].x, particlesArray[a].y); ctx.lineTo(particlesArray[b].x, particlesArray[b].y); ctx.stroke();
+        <!-- Seção de Processamento -->
+        <div id="processing-section">
+            <div class="processing-text">Iniciando análise neural...</div>
+        </div>
+
+        <!-- Seção de Resultado -->
+        <div id="result-section">
+            <div class="transcription-box">
+                <!-- O conteúdo da transcrição será gerado aqui via JavaScript -->
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn" onclick="location.reload()">Nova Transcrição</button>
+                <button class="btn btn-primary" onclick="alert('Funcionalidade de exportação em breve!')">Exportar PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuração das Partículas (Efeito IA)
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        let particlesArray;
+
+        function initParticles() {
+            canvas.width = document.getElementById('main-panel').offsetWidth;
+            canvas.height = document.getElementById('main-panel').offsetHeight;
+            particlesArray = [];
+            let numberOfParticles = (canvas.width * canvas.height) / 6000;
+            
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 2) + 1;
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                let directionX = (Math.random() * 2) - 1;
+                let directionY = (Math.random() * 2) - 1;
+                let color = '#0a84ff';
+                particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
+            }
+        }
+
+        class Particle {
+            constructor(x, y, directionX, directionY, size, color) {
+                this.x = x; this.y = y; this.directionX = directionX; this.directionY = directionY; this.size = size; this.color = color;
+            }
+            draw() {
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); ctx.fillStyle = '#ffffff'; ctx.fill();
+            }
+            update() {
+                if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX;
+                if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY;
+                this.x += this.directionX; this.y += this.directionY; this.draw();
+            }
+        }
+
+        function connect() {
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) + 
+                                   ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    if (distance < (canvas.width / 7) * (canvas.height / 7)) {
+                        opacityValue = 1 - (distance / 10000);
+                        ctx.strokeStyle = 'rgba(10, 132, 255,' + opacityValue + ')';
+                        ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(particlesArray[a].x, particlesArray[a].y); ctx.lineTo(particlesArray[b].x, particlesArray[b].y); ctx.stroke();
+                    }
                 }
             }
         }
-    }
 
-    let animationFrameId;
-    function animate() {
-        animationFrameId = requestAnimationFrame(animate);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        for (let i = 0; i < particlesArray.length; i++) { particlesArray[i].update(); }
-        connect();
-    }
+        let animationFrameId;
+        function animate() {
+            animationFrameId = requestAnimationFrame(animate);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particlesArray.length; i++) { particlesArray[i].update(); }
+            connect();
+        }
 
-    window.addEventListener('resize', () => { if (canvas.style.opacity == 1) initParticles(); });
+        window.addEventListener('resize', () => { if (canvas.style.opacity == 1) initParticles(); });
 
-    // --- LÓGICA DE BACKEND REAL ---
-    
-    // Cria um input de arquivo oculto
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'audio/*,video/*';
-
-    const uploadSection = document.getElementById('upload-section');
-    const processingSection = document.getElementById('processing-section');
-    const resultSection = document.getElementById('result-section');
-    const processingText = document.querySelector('.processing-text');
-    const transcriptionBox = document.querySelector('.transcription-box');
-
-    // Ao clicar na área de upload, abre o seletor de arquivos
-    uploadSection.addEventListener('click', () => {
-        fileInput.click();
-    });
-
-    fileInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        // Esconde upload e mostra processamento
-        uploadSection.style.display = 'none';
-        processingSection.style.display = 'flex';
+        // --- LÓGICA DE INTEGRAÇÃO COM BACKEND ---
         
-        // Inicia a animação de IA
-        canvas.style.opacity = 1;
-        initParticles();
-        animate();
+        // Cria um input de arquivo oculto
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'audio/*,video/*';
 
-        processingText.innerText = "Fazendo upload e analisando...";
+        const uploadSection = document.getElementById('upload-section');
+        const processingSection = document.getElementById('processing-section');
+        const resultSection = document.getElementById('result-section');
+        const processingText = document.querySelector('.processing-text');
+        const transcriptionBox = document.querySelector('.transcription-box');
 
-        const formData = new FormData();
-        formData.append('file', file);
+        // Ao clicar na área de upload, abre o seletor de arquivos
+        uploadSection.addEventListener('click', () => {
+            fileInput.click();
+        });
 
-        try {
-            // Envia para nossa API na Vercel
-            const response = await fetch('/api/transcribe', {
-                method: 'POST',
-                body: formData
-            });
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
 
-            const data = await response.json();
-
-            if (data.error) throw new Error(data.error);
-
-            // Para a animação
-            cancelAnimationFrame(animationFrameId);
-            canvas.style.opacity = 0;
-            processingSection.style.display = 'none';
-            resultSection.style.display = 'block';
-
-            // Limpa o conteúdo de exemplo
-            transcriptionBox.innerHTML = '';
-
-            // Renderiza os segmentos reais retornados pela OpenAI
-            if (data.segments && data.segments.length > 0) {
-                data.segments.forEach(segment => {
-                    // Formata o tempo de segundos para [MM:SS]
-                    const minutes = Math.floor(segment.start / 60).toString().padStart(2, '0');
-                    const seconds = Math.floor(segment.start % 60).toString().padStart(2, '0');
-                    const timeString = `[${minutes}:${seconds}]`;
-
-                    const block = `
-                        <div class="speech-block">
-                            <div class="meta-info">
-                                <span class="timestamp">${timeString}</span>
-                                <span class="speaker">Orador</span>
-                            </div>
-                            <div class="text">
-                                ${segment.text}
-                            </div>
-                        </div>
-                    `;
-                    transcriptionBox.innerHTML += block;
-                });
-            } else {
-                transcriptionBox.innerHTML = '<p style="color: white; padding: 20px;">Não foi possível identificar falas neste arquivo.</p>';
+            // Limite de 25MB da OpenAI (verificação no frontend)
+            if (file.size > 25 * 1024 * 1024) {
+                alert("O arquivo é maior que 25MB. Por favor, envie um arquivo menor.");
+                return;
             }
 
-        } catch (error) {
-            alert('Erro na transcrição: ' + error.message);
-            location.reload(); // Reinicia em caso de erro
-        }
-    });
-</script>
+            // Esconde upload e mostra animação de processamento
+            uploadSection.style.display = 'none';
+            processingSection.style.display = 'flex';
+            
+            // Inicia a animação de IA
+            canvas.style.opacity = 1;
+            initParticles();
+            animate();
+
+            processingText.innerText = "Fazendo upload e analisando áudio...";
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                // Rota que vai se comunicar com o transcribe.js na Vercel
+                const response = await fetch('/api/transcribe', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.error) throw new Error(data.error);
+
+                // Para a animação
+                cancelAnimationFrame(animationFrameId);
+                canvas.style.opacity = 0;
+                processingSection.style.display = 'none';
+                resultSection.style.display = 'block';
+
+                // Limpa a caixa de texto
+                transcriptionBox.innerHTML = '';
+
+                // Renderiza os segmentos retornados pela OpenAI Whisper
+                if (data.segments && data.segments.length > 0) {
+                    data.segments.forEach(segment => {
+                        // Formata o tempo de segundos (ex: 65.5) para formato [01:05]
+                        const minutes = Math.floor(segment.start / 60).toString().padStart(2, '0');
+                        const seconds = Math.floor(segment.start % 60).toString().padStart(2, '0');
+                        const timeString = `[${minutes}:${seconds}]`;
+
+                        const block = `
+                            <div class="speech-block">
+                                <div class="meta-info">
+                                    <span class="timestamp">${timeString}</span>
+                                    <span class="speaker">Orador</span>
+                                </div>
+                                <div class="text">
+                                    ${segment.text}
+                                </div>
+                            </div>
+                        `;
+                        transcriptionBox.innerHTML += block;
+                    });
+                } else if (data.text) {
+                    // Fallback caso a API não retorne segmentos (dependendo do formato)
+                    transcriptionBox.innerHTML = `
+                        <div class="speech-block">
+                            <div class="text">${data.text}</div>
+                        </div>`;
+                } else {
+                    transcriptionBox.innerHTML = '<p style="color: white; padding: 20px; text-align: center;">Nenhuma fala detectada no arquivo.</p>';
+                }
+
+            } catch (error) {
+                console.error(error);
+                alert('Erro na transcrição: Verifique se sua API KEY da OpenAI está correta na Vercel e tente novamente.\nDetalhe: ' + error.message);
+                location.reload(); // Reinicia em caso de erro
+            }
+        });
+    </script>
+</body>
+</html>
