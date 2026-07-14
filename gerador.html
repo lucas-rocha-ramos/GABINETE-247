@@ -213,19 +213,6 @@
             background: #dde3ec;
         }
 
-        /* ESTILO NOVO: Botão Instagram */
-        .btn-instagram {
-            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-            color: white;
-            width: 100%;
-            margin-top: 0.8rem;
-        }
-
-        .btn-instagram:hover {
-            opacity: 0.9;
-            transform: scale(0.97);
-        }
-
         /* ===== BOTÕES DE FORMATAÇÃO E NEGRITO ===== */
         .toolbar {
             display: flex; 
@@ -649,10 +636,10 @@
             <h2><i class="fas fa-pen-fancy"></i> Editar Conteúdo</h2>
 
             <div class="field">
-                <label><i class="fas fa-user-circle"></i> Perfil (perfil.png - fixo)</label>
+                <label><i class="fas fa-user-circle"></i> Perfil (assets/perfil.png - fixo)</label>
                 <div class="file-upload" style="border-style: solid; border-color: #1a5fb4; background: #f0f5ff;">
                     <span style="font-weight: 600; color: #1a5fb4;">
-                        <i class="fas fa-check-circle"></i> perfil.png
+                        <i class="fas fa-check-circle"></i> assets/perfil.png
                     </span>
                     <span style="font-size: 0.8rem; color: #5a6b7e; margin-left: auto;">
                         <i class="fas fa-info-circle"></i> Esquerda, Maior
@@ -663,7 +650,7 @@
                 </div>
                 <div id="avatarError" class="error-avatar">
                     <i class="fas fa-exclamation-triangle"></i> 
-                    <strong>perfil.png</strong> não encontrado.
+                    <strong>assets/perfil.png</strong> não encontrado.
                 </div>
             </div>
 
@@ -721,22 +708,26 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
 
             <div style="margin-top: 1.2rem; border-top: 2px solid #dde3ec; padding-top: 1rem;">
                 <label style="font-weight: 600; font-size: 0.85rem; color: #1e2a3a; display: block; margin-bottom: 0.5rem;">
-                    <i class="fas fa-download"></i> Baixar imagens
+                    <i class="fas fa-download"></i> Baixar ou Compartilhar
                 </label>
                 <div class="btn-download-group">
                     <button class="btn btn-success" id="download1080">
-                        <i class="fas fa-mobile-alt"></i> 1080x1920
+                        <i class="fas fa-mobile-alt"></i> Baixar (Story)
                     </button>
                     <button class="btn btn-success" id="download1350">
-                        <i class="fas fa-tablet-alt"></i> 1080x1350
+                        <i class="fas fa-tablet-alt"></i> Baixar (Feed)
+                    </button>
+                    <!-- NOVOS BOTÕES DE INSTAGRAM -->
+                    <button class="btn btn-primary" id="share1080" style="background: #e1306c; border-color: #e1306c;">
+                        <i class="fab fa-instagram"></i> Postar Story
+                    </button>
+                    <button class="btn btn-primary" id="share1350" style="background: #e1306c; border-color: #e1306c;">
+                        <i class="fab fa-instagram"></i> Postar Feed
                     </button>
                 </div>
-                <button class="btn btn-instagram" id="publishInstagram">
-                    <i class="fab fa-instagram"></i> Publicar no Instagram
-                </button>
                 <div id="loading" class="loading">
                     <div class="spinner"></div>
-                    <span>Gerando imagem...</span>
+                    <span>Processando imagem...</span>
                 </div>
             </div>
 
@@ -757,7 +748,7 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
                         <!-- Perfil e texto agrupados dentro de post-content -->
                         <div class="post-content" id="postContent1080">
                             <div class="post-profile">
-                                <img id="profilePreview1080" src="perfil.png" alt="Perfil" onerror="handleAvatarError()">
+                                <img id="profilePreview1080" src="assets/perfil.png" alt="Perfil" onerror="handleAvatarError()">
                             </div>
                             <div class="post-text" id="textPreview1080">📌 TRABALHO QUE AVANÇA</div>
                             <div class="post-materia" id="materiaPreview1080">
@@ -778,7 +769,7 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
                         <!-- Perfil e texto agrupados dentro de post-content -->
                         <div class="post-content" id="postContent1350">
                             <div class="post-profile">
-                                <img id="profilePreview1350" src="perfil.png" alt="Perfil" onerror="handleAvatarError()">
+                                <img id="profilePreview1350" src="assets/perfil.png" alt="Perfil" onerror="handleAvatarError()">
                             </div>
                             <div class="post-text" id="textPreview1350">📌 TRABALHO QUE AVANÇA</div>
                             <div class="post-materia" id="materiaPreview1350">
@@ -800,19 +791,19 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
 <div id="downloadContainer1080">
     <div class="download-content" id="downloadContent1080">
         <div class="download-profile">
-            <img id="downloadProfile1080" src="perfil.png" alt="Perfil" crossorigin="anonymous">
+            <img id="downloadProfile1080" src="assets/perfil.png" alt="Perfil" crossorigin="anonymous">
         </div>
         <div class="download-text" id="downloadText1080">📌 TRABALHO QUE AVANÇA</div>
         <div class="download-materia" id="downloadMateria1080">
             <img id="downloadMateriaImg1080" src="" alt="Matéria" style="display:none;" crossorigin="anonymous">
         </div>
-        </div>
+    </div>
 </div>
 
 <div id="downloadContainer1350">
     <div class="download-content" id="downloadContent1350">
         <div class="download-profile">
-            <img id="downloadProfile1350" src="perfil.png" alt="Perfil" crossorigin="anonymous">
+            <img id="downloadProfile1350" src="assets/perfil.png" alt="Perfil" crossorigin="anonymous">
         </div>
         <div class="download-text" id="downloadText1350">📌 TRABALHO QUE AVANÇA</div>
         <div class="download-materia" id="downloadMateria1350">
@@ -830,7 +821,9 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
         const resetBtn = document.getElementById('resetBtn');
         const download1080 = document.getElementById('download1080');
         const download1350 = document.getElementById('download1350');
-        const publishInstagram = document.getElementById('publishInstagram');
+        const share1080 = document.getElementById('share1080');
+        const share1350 = document.getElementById('share1350');
+        
         const statusMsg = document.getElementById('statusMsg');
         const statusText = document.getElementById('statusText');
         const loading = document.getElementById('loading');
@@ -863,7 +856,7 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
         let materiaDataUrl = null;
         let currentAlign = 'left';
 
-        const DEFAULT_TEXT = `📌 TRABALHO QUE AVANÇA\n\nEm agenda pelo Norte do estado, Chico Guarnieri acompanha entregas e reforça compromissos.\n\n<b>Educação</b>, segurança pública e novos investments marcaram a agenda cumprida pelo deputado estadual <b>Chico Guarnieri</b> (PSDB), nesta quinta-feira (2), ao lado do governador Otaviano Pivetta, em Nova Mutum, Lucas do Rio Verde e Sorriso.\n\nAo longo do dia, a programação foi marcada por inaugurações, anúncios de investimentos e reuniões com lideranças.`;
+        const DEFAULT_TEXT = `📌 TRABALHO QUE AVANÇA\n\nEm agenda pelo Norte do estado, Chico Guarnieri acompanha entregas e reforça compromissos.\n\n<b>Educação</b>, segurança pública e novos investimentos marcaram a agenda cumprida pelo deputado estadual <b>Chico Guarnieri</b> (PSDB), nesta quinta-feira (2), ao lado do governador Otaviano Pivetta, em Nova Mutum, Lucas do Rio Verde e Sorriso.\n\nAo longo do dia, a programação foi marcada por inaugurações, anúncios de investimentos e reuniões com lideranças.`;
 
         function renderTextWithBold(text) {
             if (!text) return '';
@@ -890,7 +883,6 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
                 try {
                     localStorage.setItem('chicoPostImage', materiaDataUrl);
                 } catch(e) {
-                    // Ignora caso a imagem seja maior que a cota do localStorage (aprox 5mb)
                     console.warn("Imagem grande demais para salvar no rascunho.");
                 }
             } else {
@@ -998,10 +990,10 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
             const img = new Image();
             img.onload = () => avatarError.classList.remove('show');
             img.onerror = () => avatarError.classList.add('show');
-            img.src = 'perfil.png';
+            img.src = 'assets/perfil.png';
         }
 
-        async function downloadImage(container, filename) {
+        async function processImage(container, filename, action) {
             loading.classList.add('show');
             statusMsg.classList.remove('show');
 
@@ -1012,11 +1004,13 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
                     return new Promise(resolve => {
                         img.onload = resolve;
                         img.onerror = resolve;
-                        setTimeout(resolve, 2000);
+                        // Reduzido para evitar que o navegador expire a "permissão de clique"
+                        setTimeout(resolve, 500);
                     });
                 }));
 
-                await new Promise(resolve => setTimeout(resolve, 300));
+                // Pequena pausa só para a engine renderizar
+                await new Promise(resolve => setTimeout(resolve, 50));
 
                 const canvas = await html2canvas(container, {
                     scale: 1,
@@ -1031,7 +1025,8 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
                 const dataUrl = canvas.toDataURL('image/png');
                 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-                const doFallback = () => {
+                // Download forçado direto (para Desktop e Android normal)
+                const doDirectDownload = () => {
                     const link = document.createElement('a');
                     link.download = filename;
                     link.href = dataUrl;
@@ -1042,41 +1037,59 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
                     setTimeout(() => statusMsg.classList.remove('show'), 3000);
                 };
 
-                // iOS: Chama a aba de compartilhamento que tem a opção "Salvar Imagem"
-                if (isIOS && navigator.canShare) {
-                    canvas.toBlob(async (blob) => {
-                        const file = new File([blob], filename, { type: 'image/png' });
-                        if (navigator.canShare({ files: [file] })) {
-                            try {
-                                await navigator.share({
-                                    files: [file]
-                                });
-                                statusMsg.classList.add('show');
-                                statusText.textContent = `✅ Selecione "Salvar Imagem"!`;
-                                setTimeout(() => statusMsg.classList.remove('show'), 3000);
-                            } catch (e) {
-                                // Se o usuário cancelar ou a API falhar, não fazemos nada (ou usamos fallback)
-                                if (e.name !== 'AbortError') doFallback();
+                // Se a ação for "Compartilhar" OU se for "Download" em um dispositivo iOS (Para salvar direto na Galeria)
+                if (action === 'share' || (action === 'download' && isIOS)) {
+                    if (navigator.canShare) {
+                        canvas.toBlob(async (blob) => {
+                            const file = new File([blob], filename, { type: 'image/png' });
+                            if (navigator.canShare({ files: [file] })) {
+                                try {
+                                    await navigator.share({
+                                        files: [file],
+                                        title: 'Post Chico Guarnieri',
+                                        text: ''
+                                    });
+                                    statusMsg.classList.add('show');
+                                    
+                                    if (action === 'share') {
+                                        statusText.textContent = `✅ Selecione o Instagram!`;
+                                    } else {
+                                        statusText.textContent = `✅ Selecione "Salvar Imagem"!`;
+                                    }
+                                    
+                                    setTimeout(() => statusMsg.classList.remove('show'), 3000);
+                                } catch (e) {
+                                    // Se o usuário cancelar a ação, fazemos o fallback
+                                    if (e.name !== 'AbortError') {
+                                        if (action === 'share') alert('O compartilhamento direto foi bloqueado pelo seu navegador. A imagem será baixada para você postar da galeria.');
+                                        doDirectDownload();
+                                    }
+                                }
+                            } else {
+                                if (action === 'share') alert('Seu navegador não suporta envio direto. A imagem será baixada.');
+                                doDirectDownload();
                             }
-                        } else {
-                            doFallback();
-                        }
-                    }, 'image/png');
+                        }, 'image/png');
+                    } else {
+                        if (action === 'share') alert('Seu navegador não suporta envio direto. A imagem será baixada.');
+                        doDirectDownload();
+                    }
                 } else {
-                    doFallback();
+                    // Download normal para Android/PC
+                    doDirectDownload();
                 }
 
             } catch (error) {
                 console.error('Erro:', error);
                 statusMsg.classList.add('show');
-                statusText.textContent = '❌ Erro ao gerar. Tente novamente.';
+                statusText.textContent = '❌ Erro ao processar. Tente novamente.';
                 setTimeout(() => statusMsg.classList.remove('show'), 3000);
             } finally {
                 loading.classList.remove('show');
             }
         }
 
-        // Eventos
+        // Eventos dos novos botões
         updateBtn.addEventListener('click', updateAll);
         
         textSizeSlider.addEventListener('input', function() {
@@ -1120,7 +1133,6 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
             textSizeVal.textContent = '100%';
             currentAlign = 'left';
             
-            // Limpa o Storage
             localStorage.removeItem('chicoPostText');
             localStorage.removeItem('chicoPostSize');
             localStorage.removeItem('chicoPostAlign');
@@ -1151,18 +1163,19 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
         });
 
         download1080.addEventListener('click', function() {
-            downloadImage(downloadContainer1080, 'post_1080x1920.png');
+            processImage(downloadContainer1080, 'post_1080x1920.png', 'download');
         });
 
         download1350.addEventListener('click', function() {
-            downloadImage(downloadContainer1350, 'post_1080x1350.png');
+            processImage(downloadContainer1350, 'post_1080x1350.png', 'download');
         });
 
-        publishInstagram.addEventListener('click', function() {
-            window.open('https://www.instagram.com/create/post/', '_blank');
-            setTimeout(() => {
-                alert("O Instagram abrirá em uma nova aba. Basta arrastar a imagem que você baixou para lá!");
-            }, 500);
+        share1080.addEventListener('click', function() {
+            processImage(downloadContainer1080, 'post_1080x1920.png', 'share');
+        });
+
+        share1350.addEventListener('click', function() {
+            processImage(downloadContainer1350, 'post_1080x1350.png', 'share');
         });
 
         textInput.addEventListener('keydown', function(e) {
@@ -1187,7 +1200,7 @@ Ao longo do dia, a programação foi marcada por inaugurações, anúncios de in
             checkProfile();
         }, 200);
 
-        console.log('Gerador com responsividade para mobile e suporte a galeria iOS');
+        console.log('Gerador com postagem no Instagram, salvamento em galeria e perfil atualizado');
     })();
 </script>
 
